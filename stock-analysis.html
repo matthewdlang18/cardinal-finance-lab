@@ -3111,22 +3111,22 @@
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // S&P 500 colors (warm tones with better contrast)
+            // S&P 500 colors (red to green gradient)
             const sp500Colors = {
-                1: '#8B0000',   // Dark red
-                5: '#DC143C',   // Crimson
-                10: '#FF4500',  // Orange red
-                20: '#FF8C00',  // Dark orange
-                30: '#FFD700'   // Gold
+                1: '#CC0000',   // Bright red
+                5: '#FF4500',   // Orange red
+                10: '#FF8C00',  // Dark orange
+                20: '#9ACD32',  // Yellow green
+                30: '#228B22'   // Forest green
             };
 
-            // Additional asset colors (cool tones with better contrast)
+            // Additional asset colors (purple to blue gradient)
             const additionalColors = {
-                1: '#00008B',   // Dark blue
-                5: '#0000CD',   // Medium blue
-                10: '#1E90FF',  // Dodger blue
-                20: '#00CED1',  // Dark turquoise
-                30: '#20B2AA'   // Light sea green
+                1: '#8B008B',   // Dark magenta
+                5: '#9370DB',   // Medium purple
+                10: '#6A5ACD',  // Slate blue
+                20: '#4169E1',  // Royal blue
+                30: '#1E90FF'   // Dodger blue
             };
 
             let allValues = [];
@@ -3330,22 +3330,22 @@
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // S&P 500 colors (warm tones with better contrast)
+            // S&P 500 colors (red to green gradient)
             const sp500Colors = {
-                1: '#8B0000',   // Dark red
-                5: '#DC143C',   // Crimson
-                10: '#FF4500',  // Orange red
-                20: '#FF8C00',  // Dark orange
-                30: '#FFD700'   // Gold
+                1: '#CC0000',   // Bright red
+                5: '#FF4500',   // Orange red
+                10: '#FF8C00',  // Dark orange
+                20: '#9ACD32',  // Yellow green
+                30: '#228B22'   // Forest green
             };
 
-            // Additional asset colors (cool tones with better contrast)
+            // Additional asset colors (purple to blue gradient)
             const additionalColors = {
-                1: '#00008B',   // Dark blue
-                5: '#0000CD',   // Medium blue
-                10: '#1E90FF',  // Dodger blue
-                20: '#00CED1',  // Dark turquoise
-                30: '#20B2AA'   // Light sea green
+                1: '#8B008B',   // Dark magenta
+                5: '#9370DB',   // Medium purple
+                10: '#6A5ACD',  // Slate blue
+                20: '#4169E1',  // Royal blue
+                30: '#1E90FF'   // Dodger blue
             };
 
             const sp500PeriodsArray = Array.from(sp500ActivePeriods).sort((a, b) => a - b).filter(period => {
