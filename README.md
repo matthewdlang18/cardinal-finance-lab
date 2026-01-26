@@ -11,7 +11,7 @@ Interactive budgeting, debt payoff, portfolio simulation, and financial dashboar
 - Open directly in browser (no server required)
 
 ### 2. Stock Analysis Lab (`stock-analysis.html`)
-Historical stock analysis and portfolio simulation using comprehensive dataset (1928-2025).
+Historical stock analysis and portfolio builder using comprehensive dataset (1928-2025).
 - **No server required** - standalone HTML with pre-loaded data
 - 490 S&P 500 stocks, market indices, and bonds
 - 98 years of S&P 500 historical data
@@ -73,13 +73,6 @@ The page automatically loads `comprehensive_stock_data.json` containing:
 - Compare portfolio performance vs S&P 500
 - **Year range warnings** - explains when analysis uses different dates than selected (e.g., when stocks have limited history)
 
-#### Monte Carlo Simulation
-- Simulate portfolio performance 30 years into future
-- Uses historical returns and volatility
-- 100 simulation paths shown
-- Compare against S&P 500 simulations
-- Supports initial investment + monthly contributions
-
 #### Rolling Returns Analysis
 - View S&P 500 rolling returns over time (default: 1982-2025)
 - **Custom date ranges** - select start and end years for analysis
@@ -118,8 +111,7 @@ Required source files:
 - **Annual Returns**: Year-over-year percentage change using end-of-year prices
 - **Rolling Returns**: Compounded annualized returns over moving windows
 - **Normalized Returns**: Cumulative returns from chosen start date
-- **Monte Carlo Simulation**: Uses Box-Muller transform for normal distribution
-- **Distribution Density**: Kernel density estimation with 50 bins
+- **Distribution Density**: Kernel density estimation with 30 bins
 - **Interactive Charts**: HTML5 Canvas with hover tooltips
 - **No external libraries**: Pure JavaScript implementation
 - **File size**: 2.77MB (includes all quarterly data)
