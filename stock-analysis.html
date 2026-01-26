@@ -3650,8 +3650,10 @@
                 const arithAvg = data.reduce((a, b) => a + b, 0) / data.length;
                 const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / data.length;
                 const stdDev = Math.sqrt(variance);
+                const worst = Math.min(...data);
+                const best = Math.max(...data);
                 const negativeYears = data.filter(val => val < 0).length;
-                statsHTML += `<li style="color: ${sp500Colors[period]};">${period}-year: Arith Mean ${arithAvg.toFixed(2)}%, Geo Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
+                statsHTML += `<li style="color: ${sp500Colors[period]};">${period}-year: Arith Mean ${arithAvg.toFixed(2)}%, Geo Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Best ${best.toFixed(2)}%, Worst ${worst.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
             });
             statsHTML += '</ul></div>';
 
@@ -3664,8 +3666,10 @@
                     const arithAvg = data.reduce((a, b) => a + b, 0) / data.length;
                     const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / data.length;
                     const stdDev = Math.sqrt(variance);
+                    const worst = Math.min(...data);
+                    const best = Math.max(...data);
                     const negativeYears = data.filter(val => val < 0).length;
-                    statsHTML += `<li style="color: ${additionalColors[period]};">${period}-year: Arith Mean ${arithAvg.toFixed(2)}%, Geo Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
+                    statsHTML += `<li style="color: ${additionalColors[period]};">${period}-year: Arith Mean ${arithAvg.toFixed(2)}%, Geo Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Best ${best.toFixed(2)}%, Worst ${worst.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
                 });
                 statsHTML += '</ul></div>';
             }
