@@ -11,10 +11,11 @@ Interactive budgeting, debt payoff, portfolio simulation, and financial dashboar
 - Open directly in browser (no server required)
 
 ### 2. Stock Analysis Lab (`stock-analysis.html`)
-Historical stock analysis and portfolio builder using comprehensive dataset (1928-2025).
+Historical stock analysis, portfolio builder, and Time Value of Money calculator.
 - **No server required** - standalone HTML with pre-loaded data
-- 490 S&P 500 stocks, market indices, and bonds
+- 490 S&P 500 stocks, market indices, and bonds (1928-2025)
 - 98 years of S&P 500 historical data
+- Full-featured TVM calculator with step-by-step solutions
 - **Try it live**: Open `stock-analysis.html` directly or visit the GitHub Pages demo
 
 ## Stock Analysis Lab Usage
@@ -85,6 +86,14 @@ The page automatically loads `comprehensive_stock_data.json` containing:
 - Timeline chart shows historical rolling returns
 - **Dotted lines** for bond data vs solid for S&P 500
 - Compare against Treasury Bills, 10-Year Treasuries, and Corporate Bonds
+
+#### Time Value of Money Calculator
+- **Solve for any variable** - PV, FV, PMT, n, or interest rate
+- **Flexible compounding** - Annual, Semi-Annual, Quarterly, Monthly, Weekly, or Daily
+- **Payment timing** - Ordinary Annuity (end of period) or Annuity Due (beginning of period)
+- **Step-by-step solutions** - shows general formula and plugged-in values
+- **Save results** - persistently store calculations for future reference
+- **Full TVM functionality** - comprehensive calculator for all time value of money problems
 
 ### Data Processing (Optional)
 

@@ -121,7 +121,6 @@ data/
 stock_data.json
 
 # Build artifacts and temp files
-cardinal-calculator/
 *.webp
 pic.webp
 banner.webp
