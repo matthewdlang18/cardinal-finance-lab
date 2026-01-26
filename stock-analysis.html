@@ -1,0 +1,3106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis - Cardinal Finance Lab v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #8C1515 0%, #2E2D29 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url('banner.webp');
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(140, 21, 21, 0.4);
+            text-align: center;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .cardinal-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #8C1515;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #8C1515;
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #2E2D29;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .tagline {
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(140, 21, 21, 0.3);
+        }
+
+        .section-title {
+            color: #8C1515;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #8C1515;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2E2D29;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E4E1D8;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #8C1515;
+        }
+
+        button {
+            background: #8C1515;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(140, 21, 21, 0.3);
+        }
+
+        button:hover {
+            background: #6d1010;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(140, 21, 21, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        canvas {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f8f8 0%, #ffffff 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #E4E1D8;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #8C1515;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .portfolio-inputs {
+            display: grid;
+            gap: 15px;
+        }
+
+        .stock-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            padding: 12px 20px;
+        }
+
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
+        .add-btn {
+            background: #28a745;
+            margin-top: 10px;
+        }
+
+        .add-btn:hover {
+            background: #218838;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8C1515;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .toggle-btn {
+            background: white;
+            color: #8C1515;
+            border: 2px solid #8C1515;
+            padding: 8px 20px;
+            font-size: 14px;
+        }
+
+        .toggle-btn.active {
+            background: #8C1515;
+            color: white;
+        }
+
+        .chart-tooltip {
+            position: fixed;
+            background: rgba(46, 45, 41, 0.95);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translate(-50%, 0);
+            white-space: nowrap;
+        }
+
+        .chart-tooltip.show {
+            opacity: 1;
+        }
+
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin: 20px 0;
+            border-bottom: 2px solid #8C1515;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            background: white;
+            color: #666;
+            border: none;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+            box-shadow: none;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: #f8f9fa;
+            color: #8C1515;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab-button.active {
+            background: #8C1515;
+            color: white;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <img src="pic.webp" alt="Cardinal Mascot" class="cardinal-logo">
+                <div>
+                    <h1>Stock Analysis Lab</h1>
+                    <p class="subtitle">Stanford IFDM - Historical Analysis & Portfolio Simulation</p>
+                </div>
+            </div>
+            <p class="tagline">Analyze historical returns and simulate portfolio performance</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('single-stock')">Single Stock Analysis</button>
+            <button class="tab-button" onclick="switchTab('portfolio')">Portfolio Builder</button>
+            <button class="tab-button" onclick="switchTab('risk-return')">Risk vs Return</button>
+            <button class="tab-button" onclick="switchTab('rolling-returns')">Rolling Returns</button>
+        </div>
+
+        <!-- Tab 1: Single Stock Analysis -->
+        <div id="single-stock" class="tab-content active">
+        <div class="section">
+            <h2 class="section-title">📈 Single Stock Analysis</h2>
+            <p style="margin-bottom: 15px; color: #666;">Analyze any S&P 500 stock, market indices (SPX), or bonds (TBILL, TBOND10, BAACORP). Dataset includes 490 stocks with historical data back to 1928.</p>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label for="ticker">Stock Ticker</label>
+                    <input type="text" id="ticker" placeholder="e.g., AAPL, MSFT, SPX, TBILL" value="AAPL">
+                </div>
+                <div class="input-wrapper">
+                    <label for="start-year">Start Year</label>
+                    <select id="start-year" onchange="validateStockDates()">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label for="end-year">End Year</label>
+                    <select id="end-year" onchange="validateStockDates()">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>&nbsp;</label>
+                    <button onclick="analyzeStock()">Analyze Stock</button>
+                </div>
+                <div class="input-wrapper">
+                    <label>&nbsp;</label>
+                    <button onclick="resetStock()" style="background-color: #6c757d;">Reset</button>
+                </div>
+                <div class="input-wrapper">
+                    <label>&nbsp;</label>
+                    <button onclick="toggleStockSharpe()" style="background-color: #17a2b8;" id="stock-sharpe-btn" disabled>Show Sharpe Ratio</button>
+                </div>
+            </div>
+            <div id="stock-loading" class="loading" style="display: none;">Loading data...</div>
+            <div id="stock-error" class="error" style="display: none;"></div>
+            <div id="stock-year-warning" style="display: none; margin-top: 15px; padding: 15px; background-color: #fff3cd; border-radius: 8px; border: 1px solid #ffc107; color: #856404;"></div>
+            <div id="stock-stats" class="stats-grid" style="display: none;"></div>
+            <div id="stock-sharpe-display" style="display: none; margin-top: 15px; padding: 15px; background-color: #d1ecf1; border-radius: 8px; border: 1px solid #bee5eb;"></div>
+            <div class="chart-container">
+                <canvas id="returns-histogram" height="400"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="returns-vs-sp500" height="400"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="normalized-price-comparison" height="400"></canvas>
+            </div>
+        </div>
+        </div>
+
+        <!-- Tab 2: Portfolio Builder -->
+        <div id="portfolio" class="tab-content">
+        <div class="section">
+            <h2 class="section-title">💼 Portfolio Builder</h2>
+            <div id="portfolio-stocks" class="portfolio-inputs"></div>
+            <button class="add-btn" onclick="addPortfolioStock()">+ Add Stock</button>
+            <button class="add-btn" onclick="normalizeWeights()" style="background-color: #17a2b8; margin-left: 10px;">Normalize Weights to 100%</button>
+            <button class="add-btn" onclick="equalWeightPortfolio()" style="background-color: #6f42c1; margin-left: 10px;">Equal Weight All</button>
+            <button class="add-btn" onclick="load2000TopPicks()" style="background-color: #fd7e14; margin-left: 10px;">2000 Top Picks</button>
+            <div class="input-group" style="margin-top: 20px;">
+                <div class="input-wrapper">
+                    <label for="portfolio-start-year">Start Year</label>
+                    <select id="portfolio-start-year" onchange="validatePortfolioDates()">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label for="portfolio-end-year">End Year</label>
+                    <select id="portfolio-end-year" onchange="validatePortfolioDates()">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>&nbsp;</label>
+                    <button onclick="analyzePortfolio()">Analyze Portfolio</button>
+                </div>
+                <div class="input-wrapper">
+                    <label>&nbsp;</label>
+                    <button onclick="resetPortfolio()" style="background-color: #6c757d;">Reset</button>
+                </div>
+                <div class="input-wrapper">
+                    <label>&nbsp;</label>
+                    <button onclick="togglePortfolioSharpe()" style="background-color: #17a2b8;" id="portfolio-sharpe-btn" disabled>Show Sharpe Ratio</button>
+                </div>
+            </div>
+            <div id="portfolio-loading" class="loading" style="display: none;">Loading portfolio data...</div>
+            <div id="portfolio-error" class="error" style="display: none;"></div>
+            <div id="portfolio-year-warning" style="display: none; margin-top: 15px; padding: 15px; background-color: #fff3cd; border-radius: 8px; border: 1px solid #ffc107; color: #856404;"></div>
+            <div id="portfolio-stats" class="stats-grid" style="display: none;"></div>
+            <div id="portfolio-sharpe-display" style="display: none; margin-top: 15px; padding: 15px; background-color: #d1ecf1; border-radius: 8px; border: 1px solid #bee5eb;"></div>
+            <div class="chart-container">
+                <canvas id="portfolio-histogram" height="400"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="portfolio-returns-time" height="400"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="portfolio-vs-sp500" height="400"></canvas>
+            </div>
+        </div>
+        </div>
+
+        <!-- Tab 3: Risk vs Return Analysis -->
+        <div id="risk-return" class="tab-content">
+        <div class="section">
+            <h2 class="section-title">📊 Risk vs Return Analysis</h2>
+            <p style="margin-bottom: 15px; color: #666;">Compare risk (volatility) and return for multiple stocks</p>
+            <div id="risk-return-stocks" class="portfolio-inputs" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
+            <button class="add-btn" onclick="addRiskReturnStock()" style="font-size: 12px; padding: 6px 12px;">+ Add Stock</button>
+            <div class="input-group" style="margin-top: 20px;">
+                <div class="input-wrapper">
+                    <label for="risk-return-start-year">Start Year</label>
+                    <select id="risk-return-start-year">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>&nbsp;</label>
+                    <button onclick="analyzeRiskReturn()">Analyze Risk vs Return</button>
+                </div>
+            </div>
+            <div id="risk-return-loading" class="loading" style="display: none;">Analyzing...</div>
+            <div id="risk-return-error" class="error" style="display: none;"></div>
+            <div class="chart-container">
+                <canvas id="risk-return-chart" height="400"></canvas>
+            </div>
+        </div>
+        </div>
+
+        <!-- Tab 4: Rolling Returns -->
+        <div id="rolling-returns" class="tab-content">
+        <div class="section">
+            <h2 class="section-title">📊 S&P 500 Rolling Returns Analysis</h2>
+            <p style="margin-bottom: 15px; color: #666;">View historical rolling returns over different time periods (1928-2025, 98 years of data). Data from <a href="https://pages.stern.nyu.edu/~adamodar/" target="_blank" style="color: #8C1515;">Aswath Damodaran, NYU Stern</a>.</p>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label for="rolling-start-year">Start Year (Both Assets)</label>
+                    <select id="rolling-start-year" onchange="validateRollingDates()">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label for="rolling-end-year">End Year (Both Assets)</label>
+                    <select id="rolling-end-year" onchange="validateRollingDates()">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label for="additional-asset">Compare with Bond/Index (Optional)</label>
+                    <select id="additional-asset">
+                        <option value="">None</option>
+                        <option value="TBILL">3-Month T-Bill</option>
+                        <option value="TBOND10">10-Year Treasury Bond</option>
+                        <option value="BAACORP">Baa Corporate Bond</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-group" style="margin-top: 15px;">
+                <div class="input-wrapper">
+                    <label>S&P 500 Periods</label>
+                    <div class="toggle-group" id="sp500-period-toggles" style="margin: 0;">
+                        <button class="toggle-btn active" data-period="1" onclick="toggleSP500Period(1)">1yr</button>
+                        <button class="toggle-btn active" data-period="5" onclick="toggleSP500Period(5)">5yr</button>
+                        <button class="toggle-btn active" data-period="10" onclick="toggleSP500Period(10)">10yr</button>
+                        <button class="toggle-btn active" data-period="20" onclick="toggleSP500Period(20)">20yr</button>
+                        <button class="toggle-btn active" data-period="30" onclick="toggleSP500Period(30)">30yr</button>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group" style="margin-top: 10px;">
+                <div class="input-wrapper">
+                    <label>Asset Periods</label>
+                    <div class="toggle-group" id="additional-period-toggles" style="margin: 0;">
+                        <button class="toggle-btn active" data-period="1" onclick="toggleAdditionalPeriod(1)">1yr</button>
+                        <button class="toggle-btn active" data-period="5" onclick="toggleAdditionalPeriod(5)">5yr</button>
+                        <button class="toggle-btn active" data-period="10" onclick="toggleAdditionalPeriod(10)">10yr</button>
+                        <button class="toggle-btn active" data-period="20" onclick="toggleAdditionalPeriod(20)">20yr</button>
+                        <button class="toggle-btn active" data-period="30" onclick="toggleAdditionalPeriod(30)">30yr</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <button onclick="analyzeRollingReturns()">Analyze Rolling Returns</button>
+                </div>
+                <div class="input-wrapper">
+                    <button onclick="resetRollingReturns()" style="background-color: #6c757d;">Reset</button>
+                </div>
+            </div>
+
+            <div id="rolling-loading" class="loading" style="display: none;">Calculating rolling returns...</div>
+            <div class="chart-container">
+                <canvas id="rolling-returns-chart" height="400"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="rolling-histogram" height="400"></canvas>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div id="chart-tooltip" class="chart-tooltip"></div>
+
+    <script>
+        // Global state
+        let stockData = null;
+        let portfolioData = null;
+        let rollingReturnsData = null;
+        let additionalRollingReturns = null;
+        let additionalTicker = null;
+        let sp500ActivePeriods = new Set([1, 5, 10, 20, 30]);
+        let additionalActivePeriods = new Set([1, 5, 10, 20, 30]);
+        let comprehensiveData = null; // Loaded from JSON file
+
+        // Load comprehensive stock data on page load
+        window.onload = async function() {
+            try {
+                const response = await fetch('comprehensive_stock_data.json');
+                comprehensiveData = await response.json();
+                console.log(`Loaded ${Object.keys(comprehensiveData).length} stocks and indices`);
+
+                // Populate year dropdowns for rolling returns
+                populateYearDropdowns();
+            } catch (error) {
+                console.error('Failed to load stock data:', error);
+                alert('Failed to load stock data. Please ensure comprehensive_stock_data.json is in the same directory.');
+            }
+
+            // Initialize with 4 portfolio stocks
+            addPortfolioStock('AAPL', 25);
+            addPortfolioStock('KO', 25);
+            addPortfolioStock('GOOGL', 25);
+            addPortfolioStock('F', 25);
+
+            // Initialize with 6 random risk-return stocks
+            initializeRandomRiskReturnStocks();
+        };
+
+        function initializeRandomRiskReturnStocks() {
+            // Always start with AAPL and KO
+            addRiskReturnStock('AAPL');
+            addRiskReturnStock('KO');
+
+            // Popular stocks from different sectors for good distribution (excluding AAPL and KO)
+            const popularStocks = ['MSFT', 'GOOGL', 'AMZN', 'TSLA', 'JPM', 'JNJ', 'WMT', 'PG',
+                                    'DIS', 'NFLX', 'BA', 'CAT', 'GE', 'XOM', 'CVX', 'PFE', 'BAC', 'T'];
+
+            // Shuffle and pick 4 random stocks
+            const shuffled = popularStocks.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 4);
+
+            selected.forEach(ticker => addRiskReturnStock(ticker));
+        }
+
+        function populateYearDropdowns() {
+            const dropdowns = [
+                { id: 'start-year', defaultYear: 2010 },
+                { id: 'end-year', defaultYear: 2025 },
+                { id: 'portfolio-start-year', defaultYear: 2010 },
+                { id: 'portfolio-end-year', defaultYear: 2025 },
+                { id: 'risk-return-start-year', defaultYear: 2010 },
+                { id: 'rolling-start-year', defaultYear: 1982 },
+                { id: 'rolling-end-year', defaultYear: 2025 }
+            ];
+
+            // Generate years from 1928 to 2025
+            dropdowns.forEach(dropdown => {
+                const select = document.getElementById(dropdown.id);
+                for (let year = 1928; year <= 2025; year++) {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    select.appendChild(option);
+                }
+                select.value = dropdown.defaultYear;
+            });
+        }
+
+        function validateStockDates() {
+            const startYear = parseInt(document.getElementById('start-year').value);
+            const endYear = parseInt(document.getElementById('end-year').value);
+
+            if (endYear < startYear) {
+                alert('End year cannot be before start year. Please adjust your selection.');
+                document.getElementById('end-year').value = startYear;
+            }
+        }
+
+        function validatePortfolioDates() {
+            const startYear = parseInt(document.getElementById('portfolio-start-year').value);
+            const endYear = parseInt(document.getElementById('portfolio-end-year').value);
+
+            if (endYear < startYear) {
+                alert('End year cannot be before start year. Please adjust your selection.');
+                document.getElementById('portfolio-end-year').value = startYear;
+            }
+        }
+
+        function validateRollingDates() {
+            const startYear = parseInt(document.getElementById('rolling-start-year').value);
+            const endYear = parseInt(document.getElementById('rolling-end-year').value);
+
+            if (endYear < startYear) {
+                alert('End year cannot be before start year. Please adjust your selection.');
+                document.getElementById('rolling-end-year').value = startYear;
+            }
+        }
+
+        let portfolioStockCount = 0;
+
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Deactivate all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+
+            // Activate corresponding button
+            event.target.classList.add('active');
+        }
+
+        function addPortfolioStock(ticker = '', weight = '') {
+            const container = document.getElementById('portfolio-stocks');
+            const id = portfolioStockCount++;
+
+            const row = document.createElement('div');
+            row.className = 'stock-row';
+            row.id = `stock-row-${id}`;
+            row.innerHTML = `
+                <div>
+                    <label>Stock Ticker</label>
+                    <input type="text" id="stock-ticker-${id}" placeholder="e.g., AAPL" value="${ticker}">
+                </div>
+                <div>
+                    <label>Weight (%)</label>
+                    <input type="number" id="stock-weight-${id}" placeholder="e.g., 33.33" step="0.01" min="0" max="100" value="${weight}">
+                </div>
+                <button class="remove-btn" onclick="removePortfolioStock(${id})">Remove</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removePortfolioStock(id) {
+            const row = document.getElementById(`stock-row-${id}`);
+            if (row) row.remove();
+        }
+
+        function toggleSP500Period(period) {
+            if (sp500ActivePeriods.has(period)) {
+                sp500ActivePeriods.delete(period);
+            } else {
+                sp500ActivePeriods.add(period);
+            }
+
+            const btn = document.querySelector(`#sp500-period-toggles [data-period="${period}"]`);
+            btn.classList.toggle('active');
+
+            if (rollingReturnsData) {
+                drawRollingReturnsCharts();
+            }
+        }
+
+        function toggleAdditionalPeriod(period) {
+            if (additionalActivePeriods.has(period)) {
+                additionalActivePeriods.delete(period);
+            } else {
+                additionalActivePeriods.add(period);
+            }
+
+            const btn = document.querySelector(`#additional-period-toggles [data-period="${period}"]`);
+            btn.classList.toggle('active');
+
+            if (additionalRollingReturns) {
+                drawRollingReturnsCharts();
+            }
+        }
+
+        // Helper function to get properly aggregated annual returns from stock data
+        function getAnnualReturns(stockData, startYear, endYear = 2025) {
+            let sourceData;
+            if (stockData.quarterlyReturns && stockData.quarterlyReturns.length > 0) {
+                // Use quarterly data and aggregate
+                sourceData = stockData.quarterlyReturns.filter(r => {
+                    const year = parseInt(r.quarter.split('Q')[0]);
+                    return year >= startYear && year <= endYear;
+                });
+            } else {
+                // Fall back to annual returns
+                sourceData = stockData.annualReturns.filter(r => parseInt(r.year) >= startYear && parseInt(r.year) <= endYear);
+            }
+
+            // Aggregate into annual returns by compounding quarters
+            const yearMap = new Map();
+            sourceData.forEach(r => {
+                const year = r.quarter ? r.quarter.split('Q')[0] : r.year;
+                if (!yearMap.has(year)) {
+                    yearMap.set(year, []);
+                }
+                yearMap.get(year).push(r.return);
+            });
+
+            const annualReturns = [];
+            yearMap.forEach((returns, year) => {
+                let compounded = 1.0;
+                returns.forEach(ret => {
+                    compounded *= (1 + ret / 100);
+                });
+                const annualReturn = (compounded - 1) * 100;
+                annualReturns.push({ year: year, return: annualReturn });
+            });
+            return annualReturns.sort((a, b) => parseInt(a.year) - parseInt(b.year));
+        }
+
+        async function analyzeStock() {
+            const ticker = document.getElementById('ticker').value.toUpperCase();
+            const startYear = parseInt(document.getElementById('start-year').value);
+            const endYear = parseInt(document.getElementById('end-year').value);
+            const startDate = `${startYear}-01-01`;
+
+            if (!ticker) {
+                alert('Please enter a ticker symbol');
+                return;
+            }
+
+            if (endYear < startYear) {
+                alert('End year cannot be before start year.');
+                return;
+            }
+
+            if (!comprehensiveData) {
+                alert('Stock data not loaded yet. Please wait...');
+                return;
+            }
+
+            document.getElementById('stock-loading').style.display = 'block';
+            document.getElementById('stock-error').style.display = 'none';
+            document.getElementById('stock-stats').style.display = 'none';
+
+            try {
+                // Get stock data from local JSON
+                const stock = comprehensiveData[ticker];
+                if (!stock) {
+                    throw new Error(`Ticker ${ticker} not found. Available tickers include S&P 500 stocks, SPX, TBILL, TBOND10, BAACORP.`);
+                }
+
+                // Use quarterly returns for histogram if available, otherwise annual
+                const returnsData = stock.quarterlyReturns || stock.annualReturns;
+                const isQuarterly = !!stock.quarterlyReturns;
+
+                // Filter returns by start and end date
+                const filteredReturns = returnsData.filter(r => {
+                    if (isQuarterly) {
+                        const year = parseInt(r.quarter.split('Q')[0]);
+                        return year >= startYear && year <= endYear;
+                    } else {
+                        return parseInt(r.year) >= startYear && parseInt(r.year) <= endYear;
+                    }
+                });
+
+                if (filteredReturns.length === 0) {
+                    throw new Error(`No data available for ${ticker} from ${startDate}`);
+                }
+
+                // ALWAYS calculate statistics from annual returns for accuracy
+                // (even when displaying quarterly data in histogram)
+                // Ensure we use ONLY annual returns, not quarterly
+                if (!stock.annualReturns || stock.annualReturns.length === 0) {
+                    throw new Error(`No annual returns data available for ${ticker}`);
+                }
+
+                // Get properly aggregated annual returns
+                const annualFilteredReturns = getAnnualReturns(stock, startYear, endYear);
+                console.log(`${ticker}: Got ${annualFilteredReturns.length} annual returns, first few:`, annualFilteredReturns.slice(0, 3));
+                const annualReturns = annualFilteredReturns.map(r => r.return);
+                const mean = annualReturns.reduce((a, b) => a + b, 0) / annualReturns.length;
+                const variance = annualReturns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / annualReturns.length;
+                const stdDev = Math.sqrt(variance);
+
+                const stats = {
+                    mean: mean,
+                    stdDev: stdDev,
+                    max: Math.max(...annualReturns),
+                    min: Math.min(...annualReturns)
+                };
+
+                // Get S&P 500 data for comparison (use same time period)
+                const sp500 = comprehensiveData['SPX'];
+                const sp500AnnualReturns = getAnnualReturns(sp500, startYear, endYear);
+
+                // Calculate normalized returns (use annual data for normalization)
+                const normalizedReturns = calculateNormalizedReturns(annualFilteredReturns);
+                const sp500Normalized = calculateNormalizedReturns(sp500AnnualReturns);
+
+                // Determine actual data range
+                const actualStartYear = annualFilteredReturns.length > 0 ? annualFilteredReturns[0].year : startYear.toString();
+                const actualEndYear = annualFilteredReturns.length > 0 ? annualFilteredReturns[annualFilteredReturns.length - 1].year : endYear.toString();
+
+                const data = {
+                    ticker: ticker,
+                    startDate: startDate,
+                    selectedStartYear: startYear,
+                    selectedEndYear: endYear,
+                    actualStartYear: actualStartYear,
+                    actualEndYear: actualEndYear,
+                    annualReturns: filteredReturns,
+                    annualFilteredReturns: annualFilteredReturns,
+                    sp500AnnualReturns: sp500AnnualReturns,
+                    isQuarterly: isQuarterly,
+                    normalizedReturns: normalizedReturns,
+                    sp500Normalized: sp500Normalized,
+                    stats: stats
+                };
+
+                stockData = data;
+                displayStockAnalysis(data);
+            } catch (error) {
+                document.getElementById('stock-error').textContent = error.message;
+                document.getElementById('stock-error').style.display = 'block';
+            } finally {
+                document.getElementById('stock-loading').style.display = 'none';
+            }
+        }
+
+        function resetStock() {
+            document.getElementById('ticker').value = '';
+            document.getElementById('start-year').value = '2010';
+            document.getElementById('end-year').value = '2025';
+            document.getElementById('stock-error').style.display = 'none';
+            document.getElementById('stock-year-warning').style.display = 'none';
+            document.getElementById('stock-stats').style.display = 'none';
+
+            // Clear summary stats
+            const stockSummaryStats = document.getElementById('stock-summary-stats');
+            if (stockSummaryStats) {
+                stockSummaryStats.remove();
+            }
+
+            // Hide and disable Sharpe ratio
+            document.getElementById('stock-sharpe-display').style.display = 'none';
+            document.getElementById('stock-sharpe-btn').disabled = true;
+            document.getElementById('stock-sharpe-btn').textContent = 'Show Sharpe Ratio';
+
+            // Clear charts
+            const charts = ['returns-histogram', 'returns-vs-sp500', 'normalized-price-comparison'];
+            charts.forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            stockData = null;
+        }
+
+        function calculateNormalizedReturns(annualReturns) {
+            if (annualReturns.length === 0) return [];
+
+            let cumulative = 1.0;
+            const normalized = [0]; // Start at 0
+
+            for (let i = 0; i < annualReturns.length; i++) {
+                cumulative *= (1 + annualReturns[i].return / 100);
+                normalized.push(cumulative - 1); // Return as decimal (e.g., 0.5 = 50% gain)
+            }
+
+            return normalized;
+        }
+
+        function calculateEquityRollingReturns(annualReturns) {
+            // Calculate rolling returns for various periods for a given equity
+            const returns = annualReturns.map(r => r.return);
+            const periods = [1, 5, 10, 20, 30];
+            const rollingData = {};
+
+            periods.forEach(period => {
+                const rollingReturns = [];
+
+                for (let i = period; i <= returns.length; i++) {
+                    // Get the returns for this period
+                    const periodReturns = returns.slice(i - period, i);
+
+                    // Calculate annualized return
+                    let cumulative = 1.0;
+                    for (const ret of periodReturns) {
+                        cumulative *= (1 + ret / 100);
+                    }
+
+                    const annualized = (Math.pow(cumulative, 1 / period) - 1) * 100;
+                    rollingReturns.push(annualized);
+                }
+
+                rollingData[`period${period}`] = rollingReturns;
+            });
+
+            return rollingData;
+        }
+
+        function displayStockAnalysis(data) {
+            // Display stats
+            const statsContainer = document.getElementById('stock-stats');
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Mean Annual Return</div>
+                    <div class="stat-value">${data.stats.mean.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Standard Deviation</div>
+                    <div class="stat-value">${data.stats.stdDev.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Maximum Return</div>
+                    <div class="stat-value" style="color: #28a745;">${data.stats.max.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Minimum Return</div>
+                    <div class="stat-value" style="color: #dc3545;">${data.stats.min.toFixed(2)}%</div>
+                </div>
+            `;
+            statsContainer.style.display = 'grid';
+
+            // Display warning if actual years differ from selected years
+            const selectedStartYear = parseInt(data.selectedStartYear);
+            const selectedEndYear = parseInt(data.selectedEndYear);
+            const actualStartYear = parseInt(data.actualStartYear);
+            const actualEndYear = parseInt(data.actualEndYear);
+            const warningDiv = document.getElementById('stock-year-warning');
+
+            if (actualStartYear > selectedStartYear || actualEndYear < selectedEndYear) {
+                let warningMsg = `<strong>⚠️ Date Range Adjusted:</strong> You selected ${selectedStartYear}-${selectedEndYear}, but ${data.ticker} only has data for ${data.actualStartYear}-${data.actualEndYear}.`;
+                warningDiv.innerHTML = warningMsg;
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+
+            // Draw traditional histogram (distribution)
+            drawHistogram('returns-histogram', data.annualReturns, `${data.ticker} Returns Distribution`);
+
+            // Draw comparison chart with time axis
+            drawComparisonChartWithTime('returns-vs-sp500', data.annualReturns, data.ticker, data.isQuarterly, data.startDate);
+
+            // Draw normalized price comparison
+            const normalizedCanvas = document.getElementById('normalized-price-comparison');
+            drawNormalizedPriceComparison('normalized-price-comparison', data.normalizedReturns, data.sp500Normalized, data.ticker, data.startDate, data.annualFilteredReturns, data.sp500AnnualReturns);
+
+            // Display summary statistics BELOW the last chart
+            displayStockSummaryStats(data, normalizedCanvas);
+
+            // Enable Sharpe ratio button
+            document.getElementById('stock-sharpe-btn').disabled = false;
+        }
+
+        function displayStockSummaryStats(data, chartCanvas) {
+            // Calculate stats ONLY from annualFilteredReturns to ensure we're using annual data
+            const stockAnnualReturns = data.annualFilteredReturns.map(r => r.return);
+            const stockMean = stockAnnualReturns.reduce((a, b) => a + b, 0) / stockAnnualReturns.length;
+            const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockMean, 2), 0) / stockAnnualReturns.length;
+            const stockStdDev = Math.sqrt(stockVariance);
+            const stockMax = Math.max(...stockAnnualReturns);
+            const stockMin = Math.min(...stockAnnualReturns);
+
+            // Calculate final portfolio values from normalized returns
+            const stockFinalValue = 1000 * (1 + data.normalizedReturns[data.normalizedReturns.length - 1]);
+            const sp500FinalValue = 1000 * (1 + data.sp500Normalized[data.sp500Normalized.length - 1]);
+
+            // Calculate S&P 500 stats from annual returns
+            const sp500Returns = data.sp500AnnualReturns.map(r => r.return);
+            const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
+            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+            const sp500StdDev = Math.sqrt(sp500Variance);
+            const sp500Max = Math.max(...sp500Returns);
+            const sp500Min = Math.min(...sp500Returns);
+
+            // Create summary section after the chart
+            const summaryHTML = `
+                <div id="stock-summary-stats" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #8C1515;">Chart Summary Statistics (from ${data.startDate})</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        <div>
+                            <strong style="color: #8C1515;">${data.ticker}:</strong>
+                            <ul style="margin: 5px 0; padding-left: 20px;">
+                                <li>Mean Return: ${stockMean.toFixed(2)}%</li>
+                                <li>Std Dev: ${stockStdDev.toFixed(2)}%</li>
+                                <li>Max Return: ${stockMax.toFixed(2)}%</li>
+                                <li>Min Return: ${stockMin.toFixed(2)}%</li>
+                                <li>$1000 Invested → $${stockFinalValue.toFixed(0)}</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <strong style="color: #2E2D29;">S&P 500:</strong>
+                            <ul style="margin: 5px 0; padding-left: 20px;">
+                                <li>Mean Return: ${sp500Mean.toFixed(2)}%</li>
+                                <li>Std Dev: ${sp500StdDev.toFixed(2)}%</li>
+                                <li>Max Return: ${sp500Max.toFixed(2)}%</li>
+                                <li>Min Return: ${sp500Min.toFixed(2)}%</li>
+                                <li>$1000 Invested → $${sp500FinalValue.toFixed(0)}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Note: These are price returns and do not include dividends for S&P 500</em></p>
+                </div>
+            `;
+
+            chartCanvas.insertAdjacentHTML('afterend', summaryHTML);
+        }
+
+        function toggleStockSharpe() {
+            const display = document.getElementById('stock-sharpe-display');
+            const button = document.getElementById('stock-sharpe-btn');
+
+            if (display.style.display === 'none') {
+                // Calculate and show Sharpe ratio
+                const riskFreeRate = 4.0; // 4% risk-free rate
+                const stockAnnualReturns = stockData.annualFilteredReturns.map(r => r.return);
+                const stockMean = stockAnnualReturns.reduce((a, b) => a + b, 0) / stockAnnualReturns.length;
+                const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockMean, 2), 0) / stockAnnualReturns.length;
+                const stockStdDev = Math.sqrt(stockVariance);
+                const stockSharpe = (stockMean - riskFreeRate) / stockStdDev;
+
+                const sp500Returns = stockData.sp500AnnualReturns.map(r => r.return);
+                const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
+                const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+                const sp500StdDev = Math.sqrt(sp500Variance);
+                const sp500Sharpe = (sp500Mean - riskFreeRate) / sp500StdDev;
+
+                const startYear = stockData.startDate.split('-')[0];
+                display.innerHTML = `
+                    <h3 style="margin-top: 0; color: #0c5460;">Sharpe Ratio (Risk-Free Rate: ${riskFreeRate}%, Period: ${startYear}-2025)</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <strong style="color: #8C1515;">${stockData.ticker}:</strong>
+                            <div style="font-size: 1.5em; margin-top: 5px;">${stockSharpe.toFixed(3)}</div>
+                        </div>
+                        <div>
+                            <strong style="color: #2E2D29;">S&P 500 (same period):</strong>
+                            <div style="font-size: 1.5em; margin-top: 5px;">${sp500Sharpe.toFixed(3)}</div>
+                        </div>
+                    </div>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Sharpe Ratio = (Mean Return - Risk-Free Rate) / Standard Deviation. S&P 500 is calculated over the same time period as your selected stock for fair comparison.</em></p>
+                `;
+                display.style.display = 'block';
+                button.textContent = 'Hide Sharpe Ratio';
+            } else {
+                display.style.display = 'none';
+                button.textContent = 'Show Sharpe Ratio';
+            }
+        }
+
+        function drawTimeSeriesHistogram(canvasId, returns, title, isQuarterly = false) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 60;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (returns.length === 0) {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const values = returns.map(r => r.return);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min || 1;
+
+            // Draw bars with time on x-axis
+            const barWidth = chartWidth / returns.length - 2;
+
+            returns.forEach((data, i) => {
+                const barHeight = Math.abs(data.return / range * chartHeight * 0.8);
+                const x = padding + (i / returns.length) * chartWidth;
+                const baseY = padding + chartHeight / 2;
+                const y = data.return >= 0 ? baseY - barHeight : baseY;
+
+                // Color based on return value
+                let color = '#28a745'; // green
+                if (data.return < 0) color = '#dc3545'; // red
+                else if (data.return < 7) color = '#ffc107'; // yellow
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            });
+
+            // Draw zero line
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + chartHeight / 2);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight / 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Y-axis labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const value = min + (range / 4) * i;
+                const y = padding + chartHeight - (i / 4) * chartHeight;
+                ctx.fillText(value.toFixed(0) + '%', padding - 10, y + 5);
+            }
+
+            // X-axis labels (show some time points)
+            ctx.textAlign = 'center';
+            const labelInterval = Math.max(1, Math.floor(returns.length / 8));
+            returns.forEach((data, i) => {
+                if (i % labelInterval === 0 || i === returns.length - 1) {
+                    const x = padding + (i / returns.length) * chartWidth;
+                    const label = isQuarterly ? data.quarter : data.year;
+                    ctx.save();
+                    ctx.translate(x, padding + chartHeight + 15);
+                    ctx.rotate(-Math.PI / 4);
+                    ctx.fillText(label, 0, 0);
+                    ctx.restore();
+                }
+            });
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(title, canvas.width / 2, padding - 30);
+
+            // Y-axis label
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '14px Arial';
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Annualized Return (%)', 0, 0);
+            ctx.restore();
+
+            // Make interactive
+            makeCanvasInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range);
+        }
+
+        function makeCanvasInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range) {
+            const tooltip = document.getElementById('chart-tooltip');
+            const barWidth = chartWidth / returns.length;
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // Check if hovering over a bar
+                const chartX = x - padding;
+                if (chartX >= 0 && chartX <= chartWidth) {
+                    const index = Math.floor(chartX / barWidth);
+                    if (index >= 0 && index < returns.length) {
+                        const data = returns[index];
+                        const label = isQuarterly ? data.quarter : data.year;
+
+                        // Calculate bar position
+                        const barX = padding + (index / returns.length) * chartWidth;
+                        const barHeight = Math.abs(data.return / range * chartHeight * 0.8);
+                        const baseY = padding + chartHeight / 2;
+                        const barY = data.return >= 0 ? baseY - barHeight : baseY;
+
+                        // Position tooltip at top of bar
+                        const tooltipX = rect.left + barX + barWidth / 2;
+                        const tooltipY = rect.top + barY - 10;
+
+                        tooltip.innerHTML = `<strong>${label}</strong><br/>Return: ${data.return.toFixed(2)}%`;
+                        tooltip.style.left = tooltipX + 'px';
+                        tooltip.style.top = tooltipY + 'px';
+                        tooltip.classList.add('show');
+                        canvas.style.cursor = 'pointer';
+                        return;
+                    }
+                }
+
+                tooltip.classList.remove('show');
+                canvas.style.cursor = 'default';
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+                canvas.style.cursor = 'default';
+            });
+        }
+
+        function drawHistogram(canvasId, returns, title) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 60;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (returns.length === 0) {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Create histogram bins - more bins for quarterly data
+            const numBins = Math.min(20, Math.max(10, Math.floor(returns.length / 10)));
+            const values = returns.map(r => r.return);
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            // Center the range around the mean
+            const range = Math.max(Math.abs(max - mean), Math.abs(min - mean));
+            const centeredMin = mean - range;
+            const centeredMax = mean + range;
+            const binWidth = (centeredMax - centeredMin) / numBins || 1;
+
+            const bins = new Array(numBins).fill(0);
+            values.forEach(value => {
+                const binIndex = Math.min(Math.max(0, Math.floor((value - centeredMin) / binWidth)), numBins - 1);
+                bins[binIndex]++;
+            });
+
+            const maxBinCount = Math.max(...bins, 1);
+
+            // Draw bars
+            bins.forEach((count, i) => {
+                const barHeight = (count / maxBinCount) * chartHeight;
+                const x = padding + (i / numBins) * chartWidth;
+                const barWidthPx = chartWidth / numBins - 2;
+                const y = padding + chartHeight - barHeight;
+
+                const binValue = centeredMin + (i + 0.5) * binWidth;
+                let color = '#28a745'; // green
+                if (binValue < 0) color = '#dc3545'; // red
+                else if (binValue < 7) color = '#ffc107'; // yellow
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, barWidthPx, barHeight);
+            });
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+
+            // X-axis labels (using centered range)
+            for (let i = 0; i <= 5; i++) {
+                const value = centeredMin + ((centeredMax - centeredMin) / 5) * i;
+                const x = padding + (i / 5) * chartWidth;
+                ctx.fillText(value.toFixed(1) + '%', x, padding + chartHeight + 25);
+            }
+
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const value = Math.round((maxBinCount / 5) * i);
+                const y = padding + chartHeight - (i / 5) * chartHeight;
+                ctx.fillText(value, padding - 10, y + 5);
+            }
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(title, canvas.width / 2, padding - 30);
+
+            // X-axis label
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '14px Arial';
+            ctx.fillText('Annual Return (%)', canvas.width / 2, canvas.height - 10);
+
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Frequency', 0, 0);
+            ctx.restore();
+        }
+
+        function drawComparisonChartWithTime(canvasId, returns, ticker, isQuarterly, startDate) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 70;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (returns.length === 0) return;
+
+            const values = returns.map(r => r.return);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min || 1;
+
+            // Draw bars with time on x-axis
+            const barWidth = Math.max(1, chartWidth / returns.length - 1);
+
+            returns.forEach((data, i) => {
+                const barHeight = Math.abs(data.return / range * chartHeight * 0.8);
+                const x = padding + (i / returns.length) * chartWidth;
+                const baseY = padding + chartHeight / 2;
+                const y = data.return >= 0 ? baseY - barHeight : baseY;
+
+                // Color based on return value
+                let color = '#28a745';
+                if (data.return < 0) color = '#dc3545';
+                else if (data.return < 7) color = '#ffc107';
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            });
+
+            // Draw zero line
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + chartHeight / 2);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight / 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Y-axis labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const value = min + (range / 4) * i;
+                const y = padding + chartHeight - (i / 4) * chartHeight;
+                ctx.fillText(value.toFixed(0) + '%', padding - 10, y + 5);
+            }
+
+            // X-axis labels (time) - always show years only, shifted forward by 1
+            ctx.textAlign = 'center';
+            const labelInterval = Math.max(1, Math.floor(returns.length / 8));
+            returns.forEach((data, i) => {
+                if (i % labelInterval === 0 || i === returns.length - 1) {
+                    const x = padding + (i / returns.length) * chartWidth;
+                    // Extract year - no shift needed
+                    let year;
+                    if (isQuarterly) {
+                        year = parseInt(data.quarter.split('Q')[0]);
+                    } else {
+                        year = parseInt(data.year);
+                    }
+                    ctx.save();
+                    ctx.translate(x, padding + chartHeight + 15);
+                    ctx.rotate(-Math.PI / 4);
+                    ctx.fillText(year.toString(), 0, 0);
+                    ctx.restore();
+                }
+            });
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${ticker} Returns Over Time (from ${startDate})`, canvas.width / 2, padding - 30);
+
+            // Y-axis label
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '14px Arial';
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Annualized Return (%)', 0, 0);
+            ctx.restore();
+
+            // Make interactive - REMOVED for simplicity
+            // makeComparisonChartInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range);
+        }
+
+        function makeComparisonChartInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range) {
+            const tooltip = document.getElementById('chart-tooltip');
+            const barWidth = Math.max(1, chartWidth / returns.length - 1);
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const chartX = x - padding;
+                if (chartX >= 0 && chartX <= chartWidth) {
+                    const index = Math.floor((chartX / chartWidth) * returns.length);
+                    if (index >= 0 && index < returns.length) {
+                        const data = returns[index];
+                        // Shift year forward by 1 for display
+                        let label;
+                        if (isQuarterly) {
+                            const year = parseInt(data.quarter.split('Q')[0]) + 1;
+                            const quarter = data.quarter.split('Q')[1];
+                            label = `${year}Q${quarter}`;
+                        } else {
+                            label = (parseInt(data.year) + 1).toString();
+                        }
+
+                        // Calculate bar position
+                        const barX = padding + (index / returns.length) * chartWidth;
+                        const barHeight = Math.abs(data.return / range * chartHeight * 0.8);
+                        const baseY = padding + chartHeight / 2;
+                        const barY = data.return >= 0 ? baseY - barHeight : baseY;
+
+                        // Position tooltip at top of bar
+                        const tooltipX = rect.left + barX + barWidth / 2;
+                        const tooltipY = rect.top + barY - 10;
+
+                        tooltip.innerHTML = `<strong>${label}</strong><br/>Return: ${data.return.toFixed(2)}%`;
+                        tooltip.style.left = tooltipX + 'px';
+                        tooltip.style.top = tooltipY + 'px';
+                        tooltip.classList.add('show');
+                        canvas.style.cursor = 'pointer';
+                        return;
+                    }
+                }
+
+                tooltip.classList.remove('show');
+                canvas.style.cursor = 'default';
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+                canvas.style.cursor = 'default';
+            });
+        }
+
+        function drawNormalizedPriceComparison(canvasId, normalizedReturns, sp500Normalized, ticker, startDate, annualReturns, sp500Returns) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 70; // Increased from 60 to avoid y-axis overlap
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (normalizedReturns.length === 0) return;
+
+            // Convert normalized returns to $1000 invested
+            const stockValues = normalizedReturns.map(v => 1000 * (1 + v));
+            const sp500Values = sp500Normalized.map(v => 1000 * (1 + v));
+
+            // Combine all values to find range
+            const allValues = [...stockValues, ...sp500Values];
+            const minValue = Math.min(...allValues, 1000);
+            const maxValue = Math.max(...allValues);
+            const range = maxValue - minValue || 1;
+
+            // Draw stock line
+            ctx.beginPath();
+            ctx.strokeStyle = '#8C1515'; // Stanford red
+            ctx.lineWidth = 3;
+
+            stockValues.forEach((value, i) => {
+                const x = padding + (i / (stockValues.length - 1)) * chartWidth;
+                const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Draw S&P 500 line
+            ctx.beginPath();
+            ctx.strokeStyle = '#2E2D29'; // Gray
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+
+            sp500Values.forEach((value, i) => {
+                const x = padding + (i / (sp500Values.length - 1)) * chartWidth;
+                const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw $1000 baseline
+            const baselineY = padding + chartHeight - ((1000 - minValue) / range) * chartHeight;
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, baselineY);
+            ctx.lineTo(padding + chartWidth, baselineY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Y-axis labels (dollar amounts, no $ to avoid overlap)
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const value = minValue + (range / 5) * i;
+                const y = padding + chartHeight - (i / 5) * chartHeight;
+                ctx.fillText(value.toFixed(0), padding - 10, y + 5);
+            }
+
+            // X-axis labels (years) - no shift needed
+            ctx.textAlign = 'center';
+            const numYearLabels = Math.min(8, annualReturns.length);
+            for (let i = 0; i <= numYearLabels; i++) {
+                const dataIndex = Math.floor((i / numYearLabels) * (annualReturns.length - 1));
+                const year = parseInt(annualReturns[dataIndex].year);
+                const x = padding + (i / numYearLabels) * chartWidth;
+                ctx.fillText(year, x, padding + chartHeight + 25);
+            }
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`$1,000 Invested: ${ticker} vs S&P 500 (from ${startDate})`, canvas.width / 2, padding - 30);
+
+            // X-axis label
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '14px Arial';
+            ctx.fillText('Year', canvas.width / 2, canvas.height - 10);
+
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Portfolio Value ($)', 0, 0);
+            ctx.restore();
+
+            // Legend
+            ctx.fillStyle = '#8C1515';
+            ctx.fillRect(canvas.width - 180, 20, 30, 3);
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(ticker, canvas.width - 145, 25);
+
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - 180, 40);
+            ctx.lineTo(canvas.width - 150, 40);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillText('S&P 500', canvas.width - 145, 45);
+
+            // Make interactive - REMOVED for simplicity
+            // makeNormalizedChartInteractive(canvas, stockValues, sp500Values, annualReturns, ticker, padding, chartWidth, chartHeight, minValue, range);
+        }
+
+        function makeNormalizedChartInteractive(canvas, stockValues, sp500Values, annualReturns, ticker, padding, chartWidth, chartHeight, minValue, range) {
+            const tooltip = document.getElementById('chart-tooltip');
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const chartX = x - padding;
+                if (chartX >= 0 && chartX <= chartWidth) {
+                    // Find closest data point
+                    const index = Math.round((chartX / chartWidth) * (stockValues.length - 1));
+                    if (index >= 0 && index < stockValues.length && index < annualReturns.length) {
+                        const year = parseInt(annualReturns[index].year) + 1;
+                        const stockValue = stockValues[index];
+                        const sp500Value = sp500Values[index];
+
+                        // Calculate the actual Y position of the data point on the line
+                        const dataX = padding + (index / (stockValues.length - 1)) * chartWidth;
+                        const dataY = padding + chartHeight - ((stockValue - minValue) / range) * chartHeight;
+
+                        // Position tooltip at the data point on the line
+                        const tooltipX = rect.left + dataX + 10;
+                        const tooltipY = rect.top + dataY - 50; // Above the point
+
+                        tooltip.innerHTML = `<strong>${year}</strong><br/>${ticker}: $${stockValue.toFixed(0)}<br/>S&P 500: $${sp500Value.toFixed(0)}`;
+                        tooltip.style.left = tooltipX + 'px';
+                        tooltip.style.top = tooltipY + 'px';
+                        tooltip.classList.add('show');
+                        canvas.style.cursor = 'crosshair';
+                        return;
+                    }
+                }
+
+                tooltip.classList.remove('show');
+                canvas.style.cursor = 'default';
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+                canvas.style.cursor = 'default';
+            });
+        }
+
+        function drawPortfolioComparisonWithTime(canvasId, returns, startDate) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 60;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (returns.length === 0) return;
+
+            const values = returns.map(r => r.return);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min || 1;
+
+            // Draw bars
+            const barWidth = Math.max(1, chartWidth / returns.length - 1);
+
+            returns.forEach((data, i) => {
+                const barHeight = Math.abs(data.return / range * chartHeight * 0.8);
+                const x = padding + (i / returns.length) * chartWidth;
+                const baseY = padding + chartHeight / 2;
+                const y = data.return >= 0 ? baseY - barHeight : baseY;
+
+                let color = '#28a745';
+                if (data.return < 0) color = '#dc3545';
+                else if (data.return < 7) color = '#ffc107';
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            });
+
+            // Draw zero line
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + chartHeight / 2);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight / 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Y-axis labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const value = min + (range / 4) * i;
+                const y = padding + chartHeight - (i / 4) * chartHeight;
+                ctx.fillText(value.toFixed(0) + '%', padding - 10, y + 5);
+            }
+
+            // X-axis labels (years) - no shift needed
+            ctx.textAlign = 'center';
+            const labelInterval = Math.max(1, Math.floor(returns.length / 8));
+            returns.forEach((data, i) => {
+                if (i % labelInterval === 0 || i === returns.length - 1) {
+                    const x = padding + (i / returns.length) * chartWidth;
+                    ctx.save();
+                    ctx.translate(x, padding + chartHeight + 15);
+                    ctx.rotate(-Math.PI / 4);
+                    ctx.fillText(data.year, 0, 0);
+                    ctx.restore();
+                }
+            });
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Portfolio Returns Over Time (from ${startDate})`, canvas.width / 2, padding - 30);
+
+            // Y-axis label
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '14px Arial';
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Annual Return (%)', 0, 0);
+            ctx.restore();
+
+            // Make interactive - REMOVED for simplicity
+            // makeComparisonChartInteractive(canvas, returns, false, padding, chartWidth, chartHeight, min, range);
+        }
+
+        function drawComparisonChart(canvasId, stockData, sp500Data, ticker, startDate) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 60;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const allValues = [...stockData, ...sp500Data];
+            const maxValue = Math.max(...allValues);
+            const minValue = Math.min(...allValues);
+            const range = maxValue - minValue;
+
+            // Draw S&P 500 line
+            ctx.beginPath();
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            sp500Data.forEach((value, index) => {
+                const x = padding + (index / (sp500Data.length - 1)) * chartWidth;
+                const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Draw stock line
+            ctx.beginPath();
+            ctx.strokeStyle = '#8C1515';
+            ctx.lineWidth = 3;
+            stockData.forEach((value, index) => {
+                const x = padding + (index / (stockData.length - 1)) * chartWidth;
+                const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+
+            // Y-axis labels
+            for (let i = 0; i <= 5; i++) {
+                const value = minValue + (range / 5) * i;
+                const y = padding + chartHeight - (i / 5) * chartHeight;
+                ctx.fillText((value * 100).toFixed(0) + '%', padding - 10, y + 5);
+            }
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${ticker} vs S&P 500 (Normalized from ${startDate})`, canvas.width / 2, padding - 30);
+
+            // Legend
+            ctx.fillStyle = '#8C1515';
+            ctx.fillRect(canvas.width - 150, 20, 20, 3);
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(ticker, canvas.width - 125, 25);
+
+            ctx.fillStyle = '#2E2D29';
+            ctx.fillRect(canvas.width - 150, 35, 20, 3);
+            ctx.fillText('S&P 500', canvas.width - 125, 40);
+        }
+
+        async function analyzePortfolio() {
+            const stocks = [];
+            const rows = document.querySelectorAll('#portfolio-stocks .stock-row');
+
+            let totalWeight = 0;
+            for (let row of rows) {
+                const id = row.id.split('-')[2];
+                const ticker = document.getElementById(`stock-ticker-${id}`).value.toUpperCase();
+                const weight = parseFloat(document.getElementById(`stock-weight-${id}`).value);
+
+                if (ticker && weight > 0) {
+                    stocks.push({ ticker, weight });
+                    totalWeight += weight;
+                }
+            }
+
+            if (stocks.length === 0) {
+                alert('Please add at least one stock');
+                return;
+            }
+
+            if (Math.abs(totalWeight - 100) > 0.1) {
+                alert(`Weights must sum to 100% (current: ${totalWeight.toFixed(2)}%)`);
+                return;
+            }
+
+            if (!comprehensiveData) {
+                alert('Stock data not loaded yet. Please wait...');
+                return;
+            }
+
+            document.getElementById('portfolio-loading').style.display = 'block';
+            document.getElementById('portfolio-error').style.display = 'none';
+            document.getElementById('portfolio-stats').style.display = 'none';
+
+            // Use portfolio start and end year
+            const startYear = parseInt(document.getElementById('portfolio-start-year').value);
+            const endYear = parseInt(document.getElementById('portfolio-end-year').value);
+            const startDate = `${startYear}-01-01`;
+
+            if (endYear < startYear) {
+                alert('End year cannot be before start year.');
+                document.getElementById('portfolio-loading').style.display = 'none';
+                return;
+            }
+
+            try {
+                // Validate all tickers exist
+                for (let stock of stocks) {
+                    if (!comprehensiveData[stock.ticker]) {
+                        throw new Error(`Ticker ${stock.ticker} not found`);
+                    }
+                }
+
+                // Get all annual returns data
+                const stocksReturns = stocks.map(stock => {
+                    const data = comprehensiveData[stock.ticker];
+                    const returns = getAnnualReturns(data, startYear, endYear);
+                    return {
+                        ticker: stock.ticker,
+                        weight: stock.weight,
+                        returns: returns
+                    };
+                });
+
+                // Find common years across all stocks
+                const allYears = new Set(stocksReturns[0].returns.map(r => r.year));
+                stocksReturns.forEach(stock => {
+                    const years = new Set(stock.returns.map(r => r.year));
+                    allYears.forEach(year => {
+                        if (!years.has(year)) allYears.delete(year);
+                    });
+                });
+
+                const commonYears = Array.from(allYears).sort();
+
+                if (commonYears.length === 0) {
+                    throw new Error('No overlapping years found for selected stocks');
+                }
+
+                // Calculate portfolio returns for common years
+                const portfolioReturns = commonYears.map(year => {
+                    let portfolioReturn = 0;
+                    stocksReturns.forEach(stock => {
+                        const yearData = stock.returns.find(r => r.year === year);
+                        if (yearData) {
+                            portfolioReturn += yearData.return * (stock.weight / 100);
+                        }
+                    });
+                    return { year: year, return: portfolioReturn };
+                });
+
+                // Calculate statistics
+                const returns = portfolioReturns.map(r => r.return);
+                const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+                const variance = returns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / returns.length;
+                const stdDev = Math.sqrt(variance);
+
+                const stats = {
+                    mean: mean,
+                    stdDev: stdDev,
+                    max: Math.max(...returns),
+                    min: Math.min(...returns)
+                };
+
+                // Get S&P 500 data for comparison - use same years as portfolio for fair comparison
+                const sp500 = comprehensiveData['SPX'];
+                const sp500All = getAnnualReturns(sp500, startYear, endYear);
+                const sp500Returns = sp500All.filter(r => commonYears.includes(r.year));
+
+                // Calculate normalized returns
+                const normalizedReturns = calculateNormalizedReturns(portfolioReturns);
+                const sp500Normalized = calculateNormalizedReturns(sp500Returns);
+
+                const data = {
+                    startDate: startDate,
+                    actualStartYear: commonYears[0],
+                    actualEndYear: commonYears[commonYears.length - 1],
+                    annualReturns: portfolioReturns,
+                    sp500Returns: sp500Returns,
+                    normalizedReturns: normalizedReturns,
+                    sp500Normalized: sp500Normalized,
+                    stats: stats
+                };
+
+                portfolioData = data;
+                displayPortfolioAnalysis(data);
+            } catch (error) {
+                document.getElementById('portfolio-error').textContent = error.message;
+                document.getElementById('portfolio-error').style.display = 'block';
+            } finally {
+                document.getElementById('portfolio-loading').style.display = 'none';
+            }
+        }
+
+        function normalizeWeights() {
+            const rows = document.querySelectorAll('#portfolio-stocks .stock-row');
+            if (rows.length === 0) {
+                alert('Please add stocks first');
+                return;
+            }
+
+            // Get current weights
+            const weights = [];
+            rows.forEach(row => {
+                const id = row.id.split('-')[2];
+                const weightInput = document.getElementById(`stock-weight-${id}`);
+                if (weightInput) {
+                    const weight = parseFloat(weightInput.value) || 0;
+                    weights.push({ id, weight });
+                }
+            });
+
+            // Calculate total
+            const total = weights.reduce((sum, w) => sum + w.weight, 0);
+
+            if (total === 0) {
+                alert('Please enter some weights first');
+                return;
+            }
+
+            // Normalize to 100%
+            weights.forEach(w => {
+                const normalizedWeight = (w.weight / total) * 100;
+                document.getElementById(`stock-weight-${w.id}`).value = normalizedWeight.toFixed(2);
+            });
+        }
+
+        function equalWeightPortfolio() {
+            const rows = document.querySelectorAll('#portfolio-stocks .stock-row');
+            if (rows.length === 0) {
+                alert('Please add stocks first');
+                return;
+            }
+
+            // Calculate equal weight
+            const equalWeight = (100 / rows.length).toFixed(2);
+
+            // Set all weights to equal
+            rows.forEach(row => {
+                const id = row.id.split('-')[2];
+                const weightInput = document.getElementById(`stock-weight-${id}`);
+                if (weightInput) {
+                    weightInput.value = equalWeight;
+                }
+            });
+        }
+
+        function load2000TopPicks() {
+            // Clear existing portfolio
+            const container = document.getElementById('portfolio-stocks');
+            container.innerHTML = '';
+            portfolioStockCount = 0;
+
+            // Set start year to 2000
+            document.getElementById('portfolio-start-year').value = '2000';
+
+            // Add 2000 top picks with equal weights
+            const topPicks2000 = ['CSCO', 'IBM', 'HD', 'JNJ', 'XOM', 'DAL', 'VZ', 'CCL'];
+            const equalWeight = (100 / topPicks2000.length).toFixed(2);
+
+            topPicks2000.forEach(ticker => {
+                addPortfolioStock(ticker, equalWeight);
+            });
+
+            // Clear any existing results
+            document.getElementById('portfolio-error').style.display = 'none';
+            document.getElementById('portfolio-stats').style.display = 'none';
+
+            const portfolioSummaryStats = document.getElementById('portfolio-summary-stats');
+            if (portfolioSummaryStats) {
+                portfolioSummaryStats.remove();
+            }
+
+            document.getElementById('portfolio-sharpe-display').style.display = 'none';
+            document.getElementById('portfolio-sharpe-btn').disabled = true;
+            document.getElementById('portfolio-sharpe-btn').textContent = 'Show Sharpe Ratio';
+
+            const charts = ['portfolio-histogram', 'portfolio-returns-time', 'portfolio-vs-sp500'];
+            charts.forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            portfolioData = null;
+        }
+
+        function resetPortfolio() {
+            // Clear all portfolio stocks
+            const container = document.getElementById('portfolio-stocks');
+            container.innerHTML = '';
+            portfolioStockCount = 0;
+
+            // Reset start year
+            document.getElementById('portfolio-start-year').value = '2010';
+
+            // Hide error and stats
+            document.getElementById('portfolio-error').style.display = 'none';
+            document.getElementById('portfolio-stats').style.display = 'none';
+
+            // Clear summary stats
+            const portfolioSummaryStats = document.getElementById('portfolio-summary-stats');
+            if (portfolioSummaryStats) {
+                portfolioSummaryStats.remove();
+            }
+
+            // Hide and disable Sharpe ratio
+            document.getElementById('portfolio-sharpe-display').style.display = 'none';
+            document.getElementById('portfolio-sharpe-btn').disabled = true;
+            document.getElementById('portfolio-sharpe-btn').textContent = 'Show Sharpe Ratio';
+
+            // Clear charts
+            const charts = ['portfolio-histogram', 'portfolio-returns-time', 'portfolio-vs-sp500'];
+            charts.forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            portfolioData = null;
+
+            // Add initial stocks
+            addPortfolioStock('AAPL', 25);
+            addPortfolioStock('KO', 25);
+            addPortfolioStock('GOOGL', 25);
+            addPortfolioStock('F', 25);
+        }
+
+        function displayPortfolioAnalysis(data) {
+            // Display stats
+            const statsContainer = document.getElementById('portfolio-stats');
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Mean Annual Return</div>
+                    <div class="stat-value">${data.stats.mean.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Standard Deviation</div>
+                    <div class="stat-value">${data.stats.stdDev.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Maximum Return</div>
+                    <div class="stat-value" style="color: #28a745;">${data.stats.max.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Minimum Return</div>
+                    <div class="stat-value" style="color: #dc3545;">${data.stats.min.toFixed(2)}%</div>
+                </div>
+            `;
+            statsContainer.style.display = 'grid';
+
+            // Display warning if actual years differ from selected start year
+            const selectedStartYear = parseInt(data.startDate.split('-')[0]);
+            const actualStartYear = parseInt(data.actualStartYear);
+            const warningDiv = document.getElementById('portfolio-year-warning');
+            if (actualStartYear > selectedStartYear) {
+                warningDiv.innerHTML = `
+                    <strong>⚠️ Date Range Adjusted:</strong> You selected ${selectedStartYear} as the start year, but analysis uses ${data.actualStartYear}-${data.actualEndYear}.
+                    Some stocks in your portfolio don't have data going back to ${selectedStartYear}. The portfolio can only be calculated for years where ALL stocks have data available.
+                `;
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+
+            // Draw traditional histogram (distribution)
+            drawHistogram('portfolio-histogram', data.annualReturns, 'Portfolio Returns Distribution');
+
+            // Draw returns over time comparison
+            drawPortfolioComparisonWithTime('portfolio-returns-time', data.annualReturns, data.startDate);
+
+            // Draw $1000 invested comparison
+            const normalizedCanvas = document.getElementById('portfolio-vs-sp500');
+            drawNormalizedPriceComparison('portfolio-vs-sp500', data.normalizedReturns, data.sp500Normalized, 'Portfolio', data.startDate, data.annualReturns, data.sp500Returns);
+
+            // Display summary statistics BELOW the last chart
+            displayPortfolioSummaryStats(data, normalizedCanvas);
+
+            // Enable Sharpe ratio button
+            document.getElementById('portfolio-sharpe-btn').disabled = false;
+        }
+
+        function displayPortfolioSummaryStats(data, chartCanvas) {
+            // Calculate portfolio stats from annual returns
+            const portfolioReturns = data.annualReturns.map(r => r.return);
+            const portfolioMean = portfolioReturns.reduce((a, b) => a + b, 0) / portfolioReturns.length;
+            const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioMean, 2), 0) / portfolioReturns.length;
+            const portfolioStdDev = Math.sqrt(portfolioVariance);
+            const portfolioMax = Math.max(...portfolioReturns);
+            const portfolioMin = Math.min(...portfolioReturns);
+
+            // Calculate final portfolio values
+            const portfolioFinalValue = 1000 * (1 + data.normalizedReturns[data.normalizedReturns.length - 1]);
+            const sp500FinalValue = 1000 * (1 + data.sp500Normalized[data.sp500Normalized.length - 1]);
+
+            // Calculate S&P 500 stats from annual returns
+            const sp500Returns = data.sp500Returns.map(r => r.return);
+            const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
+            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+            const sp500StdDev = Math.sqrt(sp500Variance);
+            const sp500Max = Math.max(...sp500Returns);
+            const sp500Min = Math.min(...sp500Returns);
+
+            // Create summary section after the chart
+            const summaryHTML = `
+                <div id="portfolio-summary-stats" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #8C1515;">Chart Summary Statistics (from ${data.startDate})</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        <div>
+                            <strong style="color: #8C1515;">Portfolio:</strong>
+                            <ul style="margin: 5px 0; padding-left: 20px;">
+                                <li>Mean Return: ${portfolioMean.toFixed(2)}%</li>
+                                <li>Std Dev: ${portfolioStdDev.toFixed(2)}%</li>
+                                <li>Max Return: ${portfolioMax.toFixed(2)}%</li>
+                                <li>Min Return: ${portfolioMin.toFixed(2)}%</li>
+                                <li>$1000 Invested → $${portfolioFinalValue.toFixed(0)}</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <strong style="color: #2E2D29;">S&P 500:</strong>
+                            <ul style="margin: 5px 0; padding-left: 20px;">
+                                <li>Mean Return: ${sp500Mean.toFixed(2)}%</li>
+                                <li>Std Dev: ${sp500StdDev.toFixed(2)}%</li>
+                                <li>Max Return: ${sp500Max.toFixed(2)}%</li>
+                                <li>Min Return: ${sp500Min.toFixed(2)}%</li>
+                                <li>$1000 Invested → $${sp500FinalValue.toFixed(0)}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Note: These are price returns and do not include dividends for S&P 500</em></p>
+                </div>
+            `;
+
+            chartCanvas.insertAdjacentHTML('afterend', summaryHTML);
+        }
+
+        function togglePortfolioSharpe() {
+            const display = document.getElementById('portfolio-sharpe-display');
+            const button = document.getElementById('portfolio-sharpe-btn');
+
+            if (display.style.display === 'none') {
+                // Calculate and show Sharpe ratio
+                const riskFreeRate = 4.0; // 4% risk-free rate
+                const portfolioReturns = portfolioData.annualReturns.map(r => r.return);
+                const portfolioMean = portfolioReturns.reduce((a, b) => a + b, 0) / portfolioReturns.length;
+                const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioMean, 2), 0) / portfolioReturns.length;
+                const portfolioStdDev = Math.sqrt(portfolioVariance);
+                const portfolioSharpe = (portfolioMean - riskFreeRate) / portfolioStdDev;
+
+                const sp500Returns = portfolioData.sp500Returns.map(r => r.return);
+                const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
+                const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+                const sp500StdDev = Math.sqrt(sp500Variance);
+                const sp500Sharpe = (sp500Mean - riskFreeRate) / sp500StdDev;
+
+                const actualStart = portfolioData.actualStartYear || portfolioData.startDate.split('-')[0];
+                const actualEnd = portfolioData.actualEndYear || '2025';
+                display.innerHTML = `
+                    <h3 style="margin-top: 0; color: #0c5460;">Sharpe Ratio (Risk-Free Rate: ${riskFreeRate}%, Period: ${actualStart}-${actualEnd})</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <strong style="color: #8C1515;">Portfolio:</strong>
+                            <div style="font-size: 1.5em; margin-top: 5px;">${portfolioSharpe.toFixed(3)}</div>
+                        </div>
+                        <div>
+                            <strong style="color: #2E2D29;">S&P 500 (same period):</strong>
+                            <div style="font-size: 1.5em; margin-top: 5px;">${sp500Sharpe.toFixed(3)}</div>
+                        </div>
+                    </div>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Sharpe Ratio = (Mean Return - Risk-Free Rate) / Standard Deviation. Both calculated over ${actualStart}-${actualEnd} (years where all portfolio stocks have data).</em></p>
+                `;
+                display.style.display = 'block';
+                button.textContent = 'Hide Sharpe Ratio';
+            } else {
+                display.style.display = 'none';
+                button.textContent = 'Show Sharpe Ratio';
+            }
+        }
+
+        let riskReturnStockCount = 0;
+
+        function addRiskReturnStock(ticker = '') {
+            const container = document.getElementById('risk-return-stocks');
+            const id = riskReturnStockCount++;
+
+            const row = document.createElement('div');
+            row.className = 'stock-row';
+            row.id = `risk-return-stock-${id}`;
+            row.style.cssText = 'display: flex; gap: 4px; align-items: center; width: auto;';
+            row.innerHTML = `
+                <input type="text" id="risk-return-ticker-${id}" placeholder="Ticker" value="${ticker}" style="width: 80px; font-size: 13px; padding: 6px 8px;">
+                <button onclick="removeRiskReturnStock(${id})" style="background-color: #dc3545; font-size: 11px; padding: 6px 10px; box-shadow: none;">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeRiskReturnStock(id) {
+            const row = document.getElementById(`risk-return-stock-${id}`);
+            if (row) row.remove();
+        }
+
+        async function analyzeRiskReturn() {
+            const tickers = [];
+            const rows = document.querySelectorAll('#risk-return-stocks .stock-row');
+
+            for (let row of rows) {
+                const id = row.id.split('-')[3];
+                const ticker = document.getElementById(`risk-return-ticker-${id}`).value.toUpperCase();
+                if (ticker) {
+                    tickers.push(ticker);
+                }
+            }
+
+            if (tickers.length === 0) {
+                alert('Please add at least one stock');
+                return;
+            }
+
+            if (!comprehensiveData) {
+                alert('Stock data not loaded yet. Please wait...');
+                return;
+            }
+
+            document.getElementById('risk-return-loading').style.display = 'block';
+            document.getElementById('risk-return-error').style.display = 'none';
+
+            try {
+                const stockStats = [];
+                const startYear = parseInt(document.getElementById('risk-return-start-year').value);
+                const startDate = `${startYear}-01-01`;
+
+                for (let ticker of tickers) {
+                    const data = comprehensiveData[ticker];
+                    if (!data) {
+                        throw new Error(`Ticker ${ticker} not found`);
+                    }
+
+                    // Get properly aggregated annual returns
+                    const annualData = getAnnualReturns(data, startYear);
+                    const returns = annualData.map(r => r.return);
+
+                    if (returns.length === 0) {
+                        throw new Error(`No data available for ${ticker} from ${startDate}`);
+                    }
+
+                    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+                    const variance = returns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / returns.length;
+                    const stdDev = Math.sqrt(variance);
+
+                    stockStats.push({ ticker, mean, stdDev });
+                }
+
+                drawRiskReturnScatter(stockStats, startDate);
+            } catch (error) {
+                document.getElementById('risk-return-error').textContent = error.message;
+                document.getElementById('risk-return-error').style.display = 'block';
+            } finally {
+                document.getElementById('risk-return-loading').style.display = 'none';
+            }
+        }
+
+        function drawRiskReturnScatter(stockStats, startDate) {
+            const canvas = document.getElementById('risk-return-chart');
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 80;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Find ranges
+            const stdDevs = stockStats.map(s => s.stdDev);
+            const means = stockStats.map(s => s.mean);
+
+            const minStdDev = Math.min(...stdDevs);
+            const maxStdDev = Math.max(...stdDevs);
+            const minMean = Math.min(...means);
+            const maxMean = Math.max(...means);
+
+            const stdDevRange = maxStdDev - minStdDev || 1;
+            const meanRange = maxMean - minMean || 1;
+
+            // Add 10% padding to ranges
+            const paddedMinStdDev = minStdDev - stdDevRange * 0.1;
+            const paddedMaxStdDev = maxStdDev + stdDevRange * 0.1;
+            const paddedMinMean = minMean - meanRange * 0.1;
+            const paddedMaxMean = maxMean + meanRange * 0.1;
+
+            const fullStdDevRange = paddedMaxStdDev - paddedMinStdDev;
+            const fullMeanRange = paddedMaxMean - paddedMinMean;
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Y-axis labels (Mean Return)
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const value = paddedMinMean + (fullMeanRange / 5) * i;
+                const y = padding + chartHeight - (i / 5) * chartHeight;
+                ctx.fillText(value.toFixed(1) + '%', padding - 10, y + 5);
+            }
+
+            // X-axis labels (Risk/Std Dev)
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 5; i++) {
+                const value = paddedMinStdDev + (fullStdDevRange / 5) * i;
+                const x = padding + (i / 5) * chartWidth;
+                ctx.fillText(value.toFixed(1) + '%', x, padding + chartHeight + 25);
+            }
+
+            // Draw data points
+            const colors = ['#8C1515', '#2E7D32', '#1976D2', '#F57C00', '#7B1FA2', '#C62828', '#00838F', '#6A1B9A'];
+
+            stockStats.forEach((stock, index) => {
+                const x = padding + ((stock.stdDev - paddedMinStdDev) / fullStdDevRange) * chartWidth;
+                const y = padding + chartHeight - ((stock.mean - paddedMinMean) / fullMeanRange) * chartHeight;
+
+                // Draw dot
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Draw label
+                ctx.fillStyle = '#2E2D29';
+                ctx.font = 'bold 11px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(stock.ticker, x, y - 15);
+            });
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Risk vs Return Analysis (from ${startDate})`, canvas.width / 2, padding - 40);
+
+            // X-axis label
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '14px Arial';
+            ctx.fillText('Risk (Standard Deviation %)', canvas.width / 2, canvas.height - 10);
+
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Return (Mean Annual Return %)', 0, 0);
+            ctx.restore();
+        }
+
+        function resetRollingReturns() {
+            document.getElementById('rolling-start-year').value = '1928';
+            document.getElementById('additional-asset').value = '';
+            additionalRollingReturns = null;
+            additionalTicker = null;
+
+            // Reset all period toggles to active
+            sp500ActivePeriods = new Set([1, 5, 10, 20, 30]);
+            additionalActivePeriods = new Set([1, 5, 10, 20, 30]);
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.add('active');
+            });
+
+            analyzeRollingReturns();
+        }
+
+        async function analyzeRollingReturns() {
+            const startYear = parseInt(document.getElementById('rolling-start-year').value);
+            const endYear = parseInt(document.getElementById('rolling-end-year').value);
+            additionalTicker = document.getElementById('additional-asset').value;
+
+            if (!comprehensiveData) {
+                alert('Stock data not loaded yet. Please wait...');
+                return;
+            }
+
+            // Validate dates
+            if (endYear < startYear) {
+                alert('End year cannot be before start year.');
+                return;
+            }
+
+            document.getElementById('rolling-loading').style.display = 'block';
+
+            try {
+                // Get pre-calculated rolling returns from comprehensive data
+                const rollingData = comprehensiveData['_ROLLING_RETURNS_'];
+
+                if (!rollingData) {
+                    throw new Error('Rolling returns data not available');
+                }
+
+                // Filter S&P 500 rolling returns by start and end year
+                const sp500AnnualReturns = comprehensiveData['SPX'].annualReturns;
+                const startIndex = sp500AnnualReturns.findIndex(r => parseInt(r.year) >= startYear);
+                const endIndex = sp500AnnualReturns.findIndex(r => parseInt(r.year) > endYear);
+                const actualEndIndex = endIndex === -1 ? sp500AnnualReturns.length : endIndex;
+
+                rollingReturnsData = {};
+                const periods = [1, 5, 10, 20, 30];
+                periods.forEach(period => {
+                    const fullData = rollingData.periods[`period${period}`];
+                    // Skip the first (startIndex - period) data points to align with start date
+                    const offset = Math.max(0, startIndex - period);
+                    // Calculate how many data points to include based on end year
+                    const endOffset = actualEndIndex - period;
+                    rollingReturnsData[`period${period}`] = fullData.slice(offset, endOffset + 1);
+                });
+
+                // Calculate rolling returns for additional asset if provided
+                additionalRollingReturns = null;
+                if (additionalTicker) {
+                    const additionalData = comprehensiveData[additionalTicker];
+                    if (additionalData && additionalData.annualReturns) {
+                        const filteredReturns = additionalData.annualReturns.filter(r => parseInt(r.year) >= startYear && parseInt(r.year) <= endYear);
+                        additionalRollingReturns = calculateEquityRollingReturns(filteredReturns);
+                        console.log(`Added ${additionalTicker} to rolling returns comparison from ${startYear} to ${endYear}`);
+                    } else {
+                        alert(`Ticker ${additionalTicker} not found. Try TBILL, TBOND10, BAACORP, or any stock ticker.`);
+                    }
+                }
+
+                drawRollingReturnsCharts();
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                document.getElementById('rolling-loading').style.display = 'none';
+            }
+        }
+
+        function drawRollingReturnsCharts() {
+            if (!rollingReturnsData) return;
+
+            const canvas = document.getElementById('rolling-returns-chart');
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 60;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // S&P 500 colors (warm tones with better contrast)
+            const sp500Colors = {
+                1: '#8B0000',   // Dark red
+                5: '#DC143C',   // Crimson
+                10: '#FF4500',  // Orange red
+                20: '#FF8C00',  // Dark orange
+                30: '#FFD700'   // Gold
+            };
+
+            // Additional asset colors (cool tones with better contrast)
+            const additionalColors = {
+                1: '#00008B',   // Dark blue
+                5: '#0000CD',   // Medium blue
+                10: '#1E90FF',  // Dodger blue
+                20: '#00CED1',  // Dark turquoise
+                30: '#20B2AA'   // Light sea green
+            };
+
+            let allValues = [];
+            sp500ActivePeriods.forEach(period => {
+                const periodData = rollingReturnsData[`period${period}`];
+                if (periodData && periodData.length > 0) {
+                    allValues.push(...periodData);
+                }
+            });
+
+            // Include additional asset rolling returns in range calculation
+            if (additionalRollingReturns) {
+                additionalActivePeriods.forEach(period => {
+                    const data = additionalRollingReturns[`period${period}`];
+                    if (data && data.length > 0) {
+                        allValues.push(...data);
+                    }
+                });
+            }
+
+            if (allValues.length === 0) {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available for selected periods', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const maxValue = Math.max(...allValues);
+            const minValue = Math.min(...allValues);
+            const range = maxValue - minValue || 1;
+
+            // Draw each period's rolling returns for S&P 500 (warm colors, solid lines)
+            sp500ActivePeriods.forEach(period => {
+                const data = rollingReturnsData[`period${period}`];
+                if (!data || data.length === 0) return;
+
+                ctx.beginPath();
+                ctx.strokeStyle = sp500Colors[period];
+                ctx.lineWidth = 3;
+
+                data.forEach((value, index) => {
+                    const x = padding + (index / (data.length - 1)) * chartWidth;
+                    const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
+                    if (index === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            });
+
+            // Draw additional asset rolling returns if available (cool colors, dotted lines)
+            if (additionalRollingReturns) {
+                additionalActivePeriods.forEach(period => {
+                    const data = additionalRollingReturns[`period${period}`];
+                    if (!data || data.length === 0) return;
+
+                    ctx.beginPath();
+                    ctx.strokeStyle = additionalColors[period];
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([2, 4]); // Dotted for additional assets (shorter dashes)
+
+                    data.forEach((value, index) => {
+                        const x = padding + (index / (data.length - 1)) * chartWidth;
+                        const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
+                        if (index === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                });
+            }
+
+            // Draw 0% horizontal line
+            if (minValue < 0 && maxValue > 0) {
+                const zeroY = padding + chartHeight - ((0 - minValue) / range) * chartHeight;
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(padding, zeroY);
+                ctx.lineTo(padding + chartWidth, zeroY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+
+            for (let i = 0; i <= 5; i++) {
+                const value = minValue + (range / 5) * i;
+                const y = padding + chartHeight - (i / 5) * chartHeight;
+                ctx.fillText(value.toFixed(1) + '%', padding - 10, y + 5);
+            }
+
+            // X-axis labels (years) - show years based on selected start and end year
+            ctx.textAlign = 'center';
+            const rollingStartYear = parseInt(document.getElementById('rolling-start-year').value);
+            const rollingEndYear = parseInt(document.getElementById('rolling-end-year').value);
+            const numLabels = 8;
+            for (let i = 0; i <= numLabels; i++) {
+                const year = Math.round(rollingStartYear + ((rollingEndYear - rollingStartYear) / numLabels) * i);
+                const x = padding + (i / numLabels) * chartWidth;
+                ctx.fillText(year.toString(), x, padding + chartHeight + 25);
+            }
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('S&P 500 Rolling Returns Over Time', canvas.width / 2, padding - 30);
+
+            // X-axis label - at the end of the x-axis line
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Year', padding + chartWidth + 5, padding + chartHeight + 5);
+
+            // Y-axis label - at the top of the y-axis line
+            ctx.textAlign = 'right';
+            ctx.fillText('Annualized Return (%)', padding - 5, padding - 5);
+
+            // Legend below the chart
+            let legendY = canvas.height - 10;
+            let legendX = padding + 20;
+
+            // S&P 500 Period colors (warm tones, solid lines)
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('S&P 500:', legendX, legendY);
+            legendX += 60;
+
+            sp500ActivePeriods.forEach(period => {
+                ctx.strokeStyle = sp500Colors[period];
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(legendX, legendY - 3);
+                ctx.lineTo(legendX + 20, legendY - 3);
+                ctx.stroke();
+                ctx.fillStyle = '#2E2D29';
+                ctx.font = '11px Arial';
+                ctx.fillText(`${period}yr`, legendX + 25, legendY + 1);
+                legendX += 65;
+            });
+
+            // Additional asset period colors (cool tones, dotted lines)
+            if (additionalRollingReturns) {
+                legendX += 15;
+                ctx.fillStyle = '#2E2D29';
+                ctx.font = 'bold 11px Arial';
+                ctx.fillText(`${additionalTicker}:`, legendX, legendY);
+                legendX += 60;
+
+                additionalActivePeriods.forEach(period => {
+                    const data = additionalRollingReturns[`period${period}`];
+                    if (!data || data.length === 0) return;
+
+                    // Draw dotted line for legend
+                    ctx.strokeStyle = additionalColors[period];
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([2, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(legendX, legendY - 3);
+                    ctx.lineTo(legendX + 20, legendY - 3);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#2E2D29';
+                    ctx.font = '11px Arial';
+                    ctx.fillText(`${period}yr`, legendX + 25, legendY + 1);
+                    legendX += 65;
+                });
+            }
+
+            // Draw histogram
+            drawRollingHistogram();
+        }
+
+        function drawRollingHistogram() {
+            const canvas = document.getElementById('rolling-histogram');
+            const ctx = canvas.getContext('2d');
+
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 400;
+
+            const padding = 60;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // S&P 500 colors (warm tones with better contrast)
+            const sp500Colors = {
+                1: '#8B0000',   // Dark red
+                5: '#DC143C',   // Crimson
+                10: '#FF4500',  // Orange red
+                20: '#FF8C00',  // Dark orange
+                30: '#FFD700'   // Gold
+            };
+
+            // Additional asset colors (cool tones with better contrast)
+            const additionalColors = {
+                1: '#00008B',   // Dark blue
+                5: '#0000CD',   // Medium blue
+                10: '#1E90FF',  // Dodger blue
+                20: '#00CED1',  // Dark turquoise
+                30: '#20B2AA'   // Light sea green
+            };
+
+            const sp500PeriodsArray = Array.from(sp500ActivePeriods).sort((a, b) => a - b).filter(period => {
+                const data = rollingReturnsData[`period${period}`];
+                return data && data.length > 0;
+            });
+
+            const additionalPeriodsArray = additionalRollingReturns ?
+                Array.from(additionalActivePeriods).sort((a, b) => a - b).filter(period => {
+                    const data = additionalRollingReturns[`period${period}`];
+                    return data && data.length > 0;
+                }) : [];
+
+            if (sp500PeriodsArray.length === 0) {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available for selected periods', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Find global min/max for consistent x-axis (include all data sources)
+            let globalMin = Infinity;
+            let globalMax = -Infinity;
+
+            sp500PeriodsArray.forEach(period => {
+                const data = rollingReturnsData[`period${period}`];
+                globalMin = Math.min(globalMin, ...data);
+                globalMax = Math.max(globalMax, ...data);
+            });
+
+            // Include additional asset data in range
+            if (additionalRollingReturns) {
+                additionalPeriodsArray.forEach(period => {
+                    const data = additionalRollingReturns[`period${period}`];
+                    globalMin = Math.min(globalMin, ...data);
+                    globalMax = Math.max(globalMax, ...data);
+                });
+            }
+
+            // Add padding to the range - expand by 10% on each side
+            const rawRange = globalMax - globalMin || 1;
+            const padding_pct = 0.1;
+            globalMin = globalMin - rawRange * padding_pct;
+            globalMax = globalMax + rawRange * padding_pct;
+            const globalRange = globalMax - globalMin;
+
+            // Use shared bins for all periods - wider bins for better visibility
+            const numBins = 30;
+            const binWidth = chartWidth / numBins;
+
+            // Track maximum frequency across all datasets to determine y-axis scale
+            let maxFrequency = 0;
+
+            // First pass: calculate all bins and find max frequency
+            const allBinsData = [];
+
+            [
+                { dataSource: rollingReturnsData, periodsArr: sp500PeriodsArray, colorPalette: sp500Colors, lineStyle: 'solid', opacity: '80' },
+                ...(additionalRollingReturns ? [{ dataSource: additionalRollingReturns, periodsArr: additionalPeriodsArray, colorPalette: additionalColors, lineStyle: 'dashed', opacity: '70' }] : [])
+            ].forEach(({ dataSource, periodsArr, colorPalette, lineStyle, opacity }) => {
+                periodsArr.forEach((period, periodIndex) => {
+                    const data = dataSource[`period${period}`];
+                    if (!data || data.length === 0) return;
+
+                    // Create histogram bins
+                    const bins = new Array(numBins).fill(0);
+
+                    data.forEach(value => {
+                        const binIndex = Math.min(
+                            Math.floor(((value - globalMin) / globalRange) * numBins),
+                            numBins - 1
+                        );
+                        bins[binIndex]++;
+                    });
+
+                    // Normalize to relative frequency
+                    const totalCount = data.length;
+                    const normalizedBins = bins.map(b => b / totalCount);
+
+                    // Track max frequency for scaling
+                    maxFrequency = Math.max(maxFrequency, ...normalizedBins);
+
+                    // Store bins data for second pass
+                    allBinsData.push({ normalizedBins, period, colorPalette, lineStyle, opacity, periodIndex });
+                });
+            });
+
+            // Determine appropriate y-axis max based on actual max frequency
+            // Round up to nearest 10%, with minimum of 50% and adjusting if needed
+            let yAxisMax = Math.ceil(maxFrequency * 100 / 10) * 10;
+            if (yAxisMax < 50) yAxisMax = 50;
+            if (yAxisMax > 100) yAxisMax = 100;
+
+            // Second pass: draw all distributions with correct scaling
+            const totalPeriods = sp500PeriodsArray.length + additionalPeriodsArray.length;
+            const barWidthAdjusted = binWidth / (totalPeriods + 1);
+
+            allBinsData.forEach(({ normalizedBins, period, colorPalette, lineStyle, opacity, periodIndex }) => {
+                // Calculate offset based on which dataset and which period
+                let globalPeriodIndex = periodIndex;
+                if (lineStyle === 'dashed') {
+                    // Additional asset - offset after S&P 500 periods
+                    globalPeriodIndex = sp500PeriodsArray.length + periodIndex;
+                }
+                const barOffset = (globalPeriodIndex - totalPeriods / 2) * barWidthAdjusted;
+
+                normalizedBins.forEach((freq, i) => {
+                    if (freq > 0) {
+                        const x = padding + (i / numBins) * chartWidth + barOffset;
+                        // Scale bar height based on dynamic y-axis max
+                        const barHeight = (freq * 100 / yAxisMax) * chartHeight * 0.9;
+                        const y = padding + chartHeight - barHeight;
+
+                        ctx.fillStyle = colorPalette[period] + opacity; // Add transparency
+                        ctx.fillRect(x, y, barWidthAdjusted, barHeight);
+
+                        // Draw border with line style
+                        ctx.strokeStyle = colorPalette[period];
+                        ctx.lineWidth = lineStyle === 'solid' ? 1.5 : 1;
+                        if (lineStyle === 'dashed') {
+                            ctx.setLineDash([4, 2]);
+                        }
+                        ctx.strokeRect(x, y, barWidthAdjusted, barHeight);
+                        ctx.setLineDash([]);
+                    }
+                });
+            });
+
+            // Draw 0% vertical line if 0 is within the range
+            if (globalMin < 0 && globalMax > 0) {
+                const zeroX = padding + ((0 - globalMin) / globalRange) * chartWidth;
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(zeroX, padding);
+                ctx.lineTo(zeroX, padding + chartHeight);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // X-axis labels (return percentages)
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 5; i++) {
+                const value = globalMin + (globalRange / 5) * i;
+                const x = padding + (i / 5) * chartWidth;
+                ctx.fillText(value.toFixed(1) + '%', x, padding + chartHeight + 25);
+            }
+
+            // Y-axis labels - use dynamic scale
+            ctx.textAlign = 'right';
+            const yLabelCount = 4;
+            for (let i = 0; i <= yLabelCount; i++) {
+                const y = padding + chartHeight - (i / yLabelCount) * chartHeight;
+                const value = (i / yLabelCount) * yAxisMax;
+                ctx.fillText(value.toFixed(0) + '%', padding - 10, y + 5);
+            }
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            let titleText = 'S&P 500 Rolling Returns Distribution';
+            if (additionalTicker) {
+                titleText = `Rolling Returns Distribution: S&P 500 vs ${additionalTicker}`;
+            }
+            ctx.fillText(titleText, canvas.width / 2, padding - 30);
+
+            // X-axis label
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = '14px Arial';
+            ctx.fillText('Annualized Return (%)', canvas.width / 2, canvas.height - 35);
+
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Relative Frequency', 0, 0);
+            ctx.restore();
+
+            // Legend below the chart
+            let legendY = canvas.height - 10;
+            let legendX = padding + 20;
+
+            // S&P 500 Period legend
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('S&P 500:', legendX, legendY);
+            legendX += 60;
+
+            sp500PeriodsArray.forEach(period => {
+                ctx.fillStyle = sp500Colors[period] + '80';
+                ctx.fillRect(legendX, legendY - 8, 20, 12);
+                ctx.strokeStyle = sp500Colors[period];
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(legendX, legendY - 8, 20, 12);
+                ctx.fillStyle = '#2E2D29';
+                ctx.font = '11px Arial';
+                ctx.fillText(`${period}yr`, legendX + 25, legendY + 3);
+                legendX += 65;
+            });
+
+            // Additional asset legend (if shown)
+            if (additionalTicker) {
+                legendX += 15;
+                ctx.fillStyle = '#2E2D29';
+                ctx.font = 'bold 11px Arial';
+                ctx.fillText(`${additionalTicker}:`, legendX, legendY);
+                legendX += 60;
+
+                additionalPeriodsArray.forEach(period => {
+                    ctx.fillStyle = additionalColors[period] + '70';
+                    ctx.fillRect(legendX, legendY - 8, 20, 12);
+                    ctx.strokeStyle = additionalColors[period];
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([4, 2]);
+                    ctx.strokeRect(legendX, legendY - 8, 20, 12);
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#2E2D29';
+                    ctx.font = '11px Arial';
+                    ctx.fillText(`${period}yr`, legendX + 25, legendY + 3);
+                    legendX += 65;
+                });
+            }
+
+            // Calculate and display average rolling returns below the chart
+            const statsContainer = document.getElementById('rolling-returns-stats');
+            if (!statsContainer) {
+                // Create stats container if it doesn't exist
+                const container = document.createElement('div');
+                container.id = 'rolling-returns-stats';
+                container.style.cssText = 'margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;';
+                canvas.parentElement.appendChild(container);
+            }
+
+            const stats = document.getElementById('rolling-returns-stats');
+            let statsHTML = '<h3 style="margin-top: 0; color: #8C1515;">Rolling Returns Statistics</h3>';
+            statsHTML += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">';
+
+            // S&P 500 averages and std dev
+            statsHTML += '<div><strong style="color: #8C1515;">S&P 500:</strong><ul style="margin: 5px 0; padding-left: 20px;">';
+            sp500PeriodsArray.forEach(period => {
+                const data = rollingReturnsData[`period${period}`];
+                const avg = data.reduce((a, b) => a + b, 0) / data.length;
+                const variance = data.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / data.length;
+                const stdDev = Math.sqrt(variance);
+                const negativeYears = data.filter(val => val < 0).length;
+                statsHTML += `<li style="color: ${sp500Colors[period]};">${period}-year: Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
+            });
+            statsHTML += '</ul></div>';
+
+            // Additional asset averages and std dev
+            if (additionalTicker && additionalPeriodsArray.length > 0) {
+                statsHTML += `<div><strong style="color: #1e3a8a;">${additionalTicker}:</strong><ul style="margin: 5px 0; padding-left: 20px;">`;
+                additionalPeriodsArray.forEach(period => {
+                    const data = additionalRollingReturns[`period${period}`];
+                    const avg = data.reduce((a, b) => a + b, 0) / data.length;
+                    const variance = data.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / data.length;
+                    const stdDev = Math.sqrt(variance);
+                    const negativeYears = data.filter(val => val < 0).length;
+                    statsHTML += `<li style="color: ${additionalColors[period]};">${period}-year: Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
+                });
+                statsHTML += '</ul></div>';
+            }
+
+            statsHTML += '</div>';
+            statsHTML += '<p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Note: These are price returns and do not include dividends for S&P 500</em></p>';
+            stats.innerHTML = statsHTML;
+        }
+    </script>
+</body>
+</html>

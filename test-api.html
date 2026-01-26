@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Polygon API Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #8C1515;
+        }
+        button {
+            background: #8C1515;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #6d1010;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            color: #8C1515;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 API Connection Test</h1>
+        <p>Use this page to verify that your backend server is running and can connect to Polygon.io</p>
+
+        <h2>Step 1: Check Server</h2>
+        <button onclick="testServer()">Test Server Connection</button>
+        <div id="server-result"></div>
+
+        <h2>Step 2: Test API</h2>
+        <button onclick="testAPI()">Test Stock Data Fetch (AAPL)</button>
+        <div id="api-result"></div>
+
+        <h2>Server Info</h2>
+        <div class="result info">
+Expected server URL: http://localhost:3001
+Stock Analysis page: stock-analysis.html
+
+To start the server:
+1. Open terminal
+2. Navigate to: /Users/mattlang/Dropbox/Matt/2026/IFDM/personal-finance
+3. Run: npm start
+
+The server must be running before using stock-analysis.html
+        </div>
+    </div>
+
+    <script>
+        async function testServer() {
+            const resultDiv = document.getElementById('server-result');
+            resultDiv.innerHTML = '<div class="loading">Testing server connection...</div>';
+
+            try {
+                const response = await fetch('http://localhost:3001/api/stock-analysis?ticker=AAPL&startDate=2024-01-01');
+
+                if (response.ok) {
+                    resultDiv.innerHTML = '<div class="result success">✅ Server is running and responding!</div>';
+                } else {
+                    const error = await response.json();
+                    resultDiv.innerHTML = `<div class="result error">⚠️ Server responded with error:\n${JSON.stringify(error, null, 2)}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Cannot connect to server.\n\nError: ${error.message}\n\nMake sure the server is running:\n  cd personal-finance\n  npm start</div>`;
+            }
+        }
+
+        async function testAPI() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<div class="loading">Fetching stock data from Polygon.io...</div>';
+
+            try {
+                const response = await fetch('http://localhost:3001/api/stock-analysis?ticker=AAPL&startDate=2024-01-01');
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="result success">✅ Successfully fetched data!\n\nTicker: ${data.ticker}\nAnnual Returns: ${data.annualReturns.length} years\nMean Return: ${data.stats.mean.toFixed(2)}%\nStd Dev: ${data.stats.stdDev.toFixed(2)}%\n\nThe API is working correctly!</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ API Error:\n${data.error}\n\nIf you see "Invalid API key", check your .env file.\nIf you see "Rate limit", wait a minute and try again.</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Request failed:\n${error.message}\n\nMake sure:\n1. Server is running (npm start)\n2. .env file has valid POLYGON_API_KEY\n3. Internet connection is working</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardinal Finance Lab - Personal Finance Simulator</title>
+    <meta name="description" content="Interactive personal finance education tool from Stanford IFDM. Build budgets, simulate portfolios, and master financial decision-making.">
+    <meta name="keywords" content="personal finance, budget calculator, portfolio simulator, financial literacy, Stanford, IFDM">
+    <meta name="author" content="Matthew Lang - Stanford IFDM">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Cardinal Finance Lab - Personal Finance Simulator">
+    <meta property="og:description" content="Interactive personal finance education tool from Stanford IFDM">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="../wherewhatwhen_a_cartoon_cardinal_doing_taxes_hilarious_47c93191-18a6-42ee-9402-a5e172c7cd2f.png.webp">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans Pro', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8C1515 0%, #2E2D29 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2E2D29;
+        }
+
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url('banner.webp');
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(140, 21, 21, 0.4);
+            text-align: center;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 15px;
+        }
+
+        .cardinal-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #8C1515;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #8C1515;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #5F574F;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .tagline {
+            color: #2E2D29;
+            font-size: 14px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+        }
+
+        .main-modules {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .module {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 40px rgba(140, 21, 21, 0.3);
+            transition: all 0.3s;
+        }
+
+        .module:hover {
+            box-shadow: 0 15px 50px rgba(140, 21, 21, 0.4);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #8C1515;
+            cursor: pointer;
+        }
+
+        .module-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .module-title h2 {
+            color: #8C1515;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .module-icon {
+            font-size: 32px;
+        }
+
+        .collapse-btn {
+            background: #E4E1D8;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #8C1515;
+        }
+
+        .collapse-btn:hover {
+            background: #8C1515;
+            color: white;
+            transform: rotate(180deg);
+        }
+
+        .module-content {
+            display: block;
+        }
+
+        .module-content.collapsed {
+            display: none;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2E2D29;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .label-hint {
+            font-size: 11px;
+            color: #5F574F;
+            font-weight: normal;
+            display: block;
+            margin-top: 3px;
+        }
+
+        input[type="number"], input[type="text"], select, textarea {
+            padding: 14px;
+            border: 2px solid #E4E1D8;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #FAFAFA;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #8C1515;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(140, 21, 21, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 16px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8C1515 0%, #B1040E 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(140, 21, 21, 0.4);
+        }
+
+        .btn-secondary {
+            background: #E4E1D8;
+            color: #2E2D29;
+        }
+
+        .btn-secondary:hover {
+            background: #D4D1C6;
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #F8F8F8 0%, #FFFFFF 100%);
+            border: 2px solid #8C1515;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+
+        .result-title {
+            color: #8C1515;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #E4E1D8;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #5F574F;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #8C1515;
+        }
+
+        .metric-value.positive {
+            color: #28a745;
+        }
+
+        .metric-value.negative {
+            color: #dc3545;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            display: block;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(140, 21, 21, 0.3);
+        }
+
+        .sidebar-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #8C1515;
+        }
+
+        .sidebar-header h3 {
+            color: #8C1515;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: #5F574F;
+            font-size: 13px;
+        }
+
+        .saved-item {
+            background: white;
+            border: 2px solid #E4E1D8;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .saved-item:hover {
+            border-color: #8C1515;
+            transform: translateX(-5px);
+            box-shadow: 0 4px 15px rgba(140, 21, 21, 0.2);
+        }
+
+        .saved-item-title {
+            font-weight: 700;
+            color: #8C1515;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .saved-item-date {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .delete-btn {
+            float: right;
+            background: #FFE5E5;
+            color: #8C1515;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #8C1515;
+            color: white;
+        }
+
+        .info-banner {
+            background: linear-gradient(135deg, #FFF3CD 0%, #FFE69C 100%);
+            border-left: 5px solid #B1040E;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #2E2D29;
+        }
+
+        .info-banner strong {
+            color: #8C1515;
+        }
+
+        .expense-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .remove-item-btn {
+            background: #FFE5E5;
+            color: #8C1515;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .remove-item-btn:hover {
+            background: #8C1515;
+            color: white;
+        }
+
+        .add-item-btn {
+            background: #E4E1D8;
+            color: #2E2D29;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .add-item-btn:hover {
+            background: #8C1515;
+            color: white;
+        }
+
+        .asset-allocation-bar {
+            display: flex;
+            height: 40px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .asset-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .asset-segment:hover {
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        .scenario-card {
+            background: white;
+            border: 2px solid #E4E1D8;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .scenario-card:hover {
+            border-color: #8C1515;
+            box-shadow: 0 4px 15px rgba(140, 21, 21, 0.2);
+        }
+
+        .scenario-card.selected {
+            border-color: #8C1515;
+            background: linear-gradient(135deg, #FFF3CD 0%, #FFE69C 100%);
+        }
+
+        .scenario-title {
+            font-weight: 700;
+            color: #8C1515;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .scenario-description {
+            font-size: 13px;
+            color: #5F574F;
+        }
+
+        .progress-bar {
+            background: #E4E1D8;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: 2px solid #E4E1D8;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #2E2D29;
+        }
+
+        .tab-btn:hover {
+            border-color: #8C1515;
+            background: #FFF3CD;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #8C1515 0%, #B1040E 100%);
+            color: white;
+            border-color: #8C1515;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            color: #8C1515;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #2E2D29;
+            color: white;
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .module {
+                padding: 20px;
+            }
+
+            .expense-item {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .timeline-item {
+            padding: 15px;
+            background: white;
+            border-left: 4px solid #8C1515;
+            margin-bottom: 12px;
+            border-radius: 8px;
+        }
+
+        .timeline-year {
+            font-weight: 700;
+            color: #8C1515;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .timeline-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2E2D29;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #8C1515 0%, #B1040E 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E4E1D8;
+        }
+
+        .comparison-table tr:hover {
+            background: #F8F8F8;
+        }
+
+        .risk-gauge {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .risk-level {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 8px;
+            margin: 0 5px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .risk-level.low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .risk-level.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-level.high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .risk-level.selected {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(140, 21, 21, 0.3);
+            border: 3px solid #8C1515;
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(46, 45, 41, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
+        }
+
+        .chart-tooltip.show {
+            opacity: 1;
+        }
+
+        canvas {
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+    <!-- Chart Tooltip -->
+    <div id="chart-tooltip" class="chart-tooltip"></div>
+
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <img src="pic.webp" alt="Cardinal Mascot" class="cardinal-logo">
+                <div>
+                    <h1>Cardinal Finance Lab</h1>
+                    <p class="subtitle">Stanford IFDM - Initiative for Financial Decision-Making</p>
+                </div>
+            </div>
+            <p class="tagline">Master your financial future through interactive simulation and experimentation</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div style="background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 40px rgba(140, 21, 21, 0.3);">
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('budget')">📊 Budget Builder</button>
+                <button class="tab-btn" onclick="switchTab('debt')">💳 Debt Payoff</button>
+                <button class="tab-btn" onclick="switchTab('portfolio')">📈 Portfolio Simulator</button>
+                <button class="tab-btn" onclick="switchTab('dashboard')">🎯 Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('calculator')">🧮 Cardinal Calculator</button>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Main Modules -->
+            <div class="main-modules">
+
+                <!-- Module 5: Cardinal Calculator -->
+                <div class="module" id="module-calculator" style="display: none;">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-icon">🧮</span>
+                            <h2>Cardinal Calculator</h2>
+                        </div>
+                    </div>
+                    <div class="module-content" id="content-calculator" style="min-height: 900px;">
+                        <iframe src="cardinal-calculator/index.html" style="width:100%;min-height:900px;border:none;border-radius:16px;box-shadow:0 4px 24px rgba(140,21,21,0.10);"></iframe>
+                    </div>
+                </div>
+
+                <!-- Module 1: Budget Builder -->
+                <div class="module" id="module-budget" style="display: block;">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-icon">📊</span>
+                            <h2>Budget Builder</h2>
+                        </div>
+                    </div>
+                    <div class="module-content" id="content-budget">
+                        <div class="info-banner">
+                            <strong>💡 The 50/30/20 Rule:</strong> Allocate 50% to needs, 30% to wants, and 20% to savings & debt repayment.
+                        </div>
+
+                        <div style="display: flex; gap: 20px; align-items: flex-end; margin-bottom: 25px;">
+                            <div class="input-group" style="flex: 1;">
+                                <label>Monthly Income (After Tax)
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Your take-home pay after taxes, insurance, and other deductions.</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="budget-income" value="5000" min="0" step="100">
+                            </div>
+                            <button class="btn btn-secondary" onclick="autoBalanceBudget()" style="margin-bottom: 0; white-space: nowrap;">Update Budget</button>
+                        </div>
+
+                        <h3 style="color: #8C1515; margin: 25px 0 15px 0; font-size: 18px;">📋 Expenses</h3>
+
+                        <div id="expense-list">
+                            <!-- Dynamic expense items will be added here -->
+                        </div>
+
+                        <button class="add-item-btn" onclick="addExpenseItem()">+ Add Expense</button>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="calculateBudget()">Calculate Budget</button>
+                            <button class="btn btn-secondary" onclick="saveBudget()">Save Budget</button>
+                            <button class="btn btn-secondary" onclick="resetBudget()">Reset</button>
+                        </div>
+
+                        <div id="budget-results" class="result-box hidden">
+                            <div class="result-title">💰 Budget Analysis</div>
+                            <div class="metric-grid">
+                                <div class="metric-card">
+                                    <div class="metric-label">Monthly Income</div>
+                                    <div class="metric-value positive" id="display-income">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Spending</div>
+                                    <div class="metric-value" id="total-spending">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Savings</div>
+                                    <div class="metric-value positive" id="total-savings">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Savings Rate
+                                        <span class="tooltip">ℹ️
+                                            <span class="tooltiptext">% of income allocated to savings. Target: 20%+</span>
+                                        </span>
+                                    </div>
+                                    <div class="metric-value" id="savings-rate">0%</div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 25px;">
+                                <strong style="color: #8C1515;">50/30/20 Rule Analysis:</strong>
+                                <div class="progress-bar" style="margin-top: 10px;">
+                                    <div class="progress-fill" id="needs-bar" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                                        <span id="needs-percent">0%</span>
+                                    </div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="wants-bar" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                                        <span id="wants-percent">0%</span>
+                                    </div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="savings-bar">
+                                        <span id="savings-percent">0%</span>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #5F574F; margin-top: 10px;">
+                                    <span style="color: #dc3545;">■</span> Needs &nbsp;&nbsp;
+                                    <span style="color: #ffc107;">■</span> Wants &nbsp;&nbsp;
+                                    <span style="color: #28a745;">■</span> Savings
+                                </div>
+                            </div>
+
+                            <div id="budget-chart" class="chart-container">
+                                <canvas id="budget-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 2: Portfolio Simulator -->
+                <div class="module" id="module-portfolio" style="display: none;">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-icon">📈</span>
+                            <h2>Portfolio Simulator</h2>
+                        </div>
+                    </div>
+                    <div class="module-content" id="content-portfolio">
+                        <div class="info-banner">
+                            <strong>💡 Diversification:</strong> Spreading investments across different asset classes reduces risk while maintaining growth potential.
+                        </div>
+
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label>Initial Investment
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">The amount you're starting with today.</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="portfolio-initial" value="10000" min="0" step="1000">
+                            </div>
+                            <div class="input-group">
+                                <label>Monthly Contribution</label>
+                                <input type="number" id="portfolio-monthly" value="500" min="0" step="100">
+                            </div>
+                            <div class="input-group">
+                                <label>Time Horizon (Years)</label>
+                                <input type="number" id="portfolio-years" value="30" min="1" max="50" step="1">
+                            </div>
+                        </div>
+
+                        <h3 style="color: #8C1515; margin: 25px 0 15px 0; font-size: 18px;">🎯 Asset Allocation</h3>
+                        <div class="info-banner" style="background: #F8F8F8; color: #2E2D29; border-left: 5px solid #8C1515; margin-bottom: 18px;">
+                            <strong>📈 Simulation Assumptions:</strong><br>
+                            <ul style="margin: 8px 0 0 18px; padding: 0; font-size: 13px;">
+                                <li><strong>Stocks:</strong> Avg. return <b>10%</b> per year, Std. Dev. <b>18%</b></li>
+                                <li><strong>Bonds:</strong> Avg. return <b>5%</b> per year, Std. Dev. <b>6%</b></li>
+                                <li><strong>Cash:</strong> Avg. return <b>2%</b> per year, Std. Dev. <b>0.5%</b></li>
+                            </ul>
+                            <span style="font-size:12px; color:#5F574F;">(These are historical averages, not guarantees. Standard deviation measures typical annual fluctuation.)</span>
+                        </div>
+
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label>Stocks (%) <span id="stocks-display">60%</span></label>
+                                <input type="range" id="stocks-slider" min="0" max="100" value="60" oninput="updateAllocation()">
+                            </div>
+                            <div class="input-group">
+                                <label>Bonds (%) <span id="bonds-display">30%</span></label>
+                                <input type="range" id="bonds-slider" min="0" max="100" value="30" oninput="updateAllocation()">
+                            </div>
+                            <div class="input-group">
+                                <label>Cash (%) <span id="cash-display">10%</span></label>
+                                <input type="range" id="cash-slider" min="0" max="100" value="10" oninput="updateAllocation()">
+                            </div>
+                        </div>
+
+                        <div class="asset-allocation-bar" id="allocation-bar"></div>
+
+                        <h3 style="color: #8C1515; margin: 25px 0 15px 0; font-size: 18px;">⚖️ Risk Tolerance</h3>
+                        <div class="risk-gauge">
+                            <div class="risk-level low" onclick="selectRisk('low')">
+                                <div>🛡️ Conservative</div>
+                                <div style="font-size: 11px; margin-top: 5px; line-height: 1.3;">~4-6% return<br>Low volatility</div>
+                            </div>
+                            <div class="risk-level medium selected" onclick="selectRisk('medium')">
+                                <div>⚖️ Moderate</div>
+                                <div style="font-size: 11px; margin-top: 5px; line-height: 1.3;">~7-9% return<br>Moderate volatility</div>
+                            </div>
+                            <div class="risk-level high" onclick="selectRisk('high')">
+                                <div>🚀 Aggressive</div>
+                                <div style="font-size: 11px; margin-top: 5px; line-height: 1.3;">~10-12% return<br>High volatility</div>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="runPortfolioSimulation()">Run Simulation</button>
+                            <button class="btn btn-secondary" onclick="savePortfolio()">Save Portfolio</button>
+                        </div>
+
+                        <div id="portfolio-results" class="result-box hidden">
+                            <div class="result-title">📊 Simulation Results (Monte Carlo - 1000 scenarios)</div>
+
+                            <div style="background: linear-gradient(135deg, #FFF3CD 0%, #FFE69C 100%); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #8C1515;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px;">
+                                    <div>
+                                        <strong style="color: #8C1515;">Expected Annual Return:</strong><br>
+                                        <span id="portfolio-return" style="font-size: 18px; font-weight: 700;">0%</span>
+                                    </div>
+                                    <div>
+                                        <strong style="color: #8C1515;">Portfolio Volatility (σ):</strong><br>
+                                        <span id="portfolio-volatility" style="font-size: 18px; font-weight: 700;">0%</span>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; font-size: 12px; color: #5F574F;">
+                                    <strong>What this means:</strong> Higher volatility = wider range of possible outcomes. Your portfolio has a 68% chance of returning between <span id="return-range" style="font-weight: 600;">±X%</span> annually.
+                                </div>
+                            </div>
+
+                            <div class="metric-grid">
+                                <div class="metric-card">
+                                    <div class="metric-label">Expected Value</div>
+                                    <div class="metric-value positive" id="portfolio-expected">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Best Case (90th %)</div>
+                                    <div class="metric-value positive" id="portfolio-best">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Worst Case (10th %)</div>
+                                    <div class="metric-value" id="portfolio-worst">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Invested</div>
+                                    <div class="metric-value" id="portfolio-invested">$0</div>
+                                </div>
+                            </div>
+
+                            <h4 style="color: #8C1515; margin: 25px 0 15px 0;">📊 Growth Scenarios Over Time</h4>
+                            <div id="portfolio-chart" class="chart-container">
+                                <canvas id="portfolio-canvas"></canvas>
+                            </div>
+
+                            <h4 style="color: #8C1515; margin: 25px 0 15px 0;">📈 Distribution of Final Returns</h4>
+                            <div id="portfolio-histogram" class="chart-container">
+                                <canvas id="portfolio-histogram-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 3: Debt Management -->
+                <div class="module" id="module-debt" style="display: none;">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-icon">💳</span>
+                            <h2>Debt Payoff Planner</h2>
+                        </div>
+                    </div>
+                    <div class="module-content" id="content-debt">
+                        <div class="info-banner">
+                            <strong>💡 Avalanche vs Snowball:</strong> Avalanche saves more on interest (pay highest rate first). Snowball builds momentum (pay smallest balance first).
+                        </div>
+
+                        <h3 style="color: #8C1515; margin: 0 0 15px 0; font-size: 18px;">📋 Your Debts</h3>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 10px; font-weight: 600; font-size: 13px; color: #8C1515; padding: 0 5px;">
+                            <div>Debt Name</div>
+                            <div>Balance</div>
+                            <div>Interest Rate (%)</div>
+                            <div>Min Payment</div>
+                            <div></div>
+                        </div>
+
+                        <div id="debt-list"></div>
+
+                        <button class="add-item-btn" onclick="addDebtItem()">+ Add Debt</button>
+
+                        <div class="input-grid" style="margin-top: 25px;">
+                            <div class="input-group">
+                                <label>Monthly Payment Budget</label>
+                                <input type="number" id="debt-monthly-payment" value="1000" min="0" step="50">
+                            </div>
+                            <div class="input-group">
+                                <label>Payoff Strategy</label>
+                                <select id="debt-strategy">
+                                    <option value="avalanche">Avalanche (Highest Interest First)</option>
+                                    <option value="snowball">Snowball (Smallest Balance First)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="calculateDebtPayoff()">Calculate Payoff Plan</button>
+                            <button class="btn btn-secondary" onclick="saveDebtPlan()">Save Plan</button>
+                        </div>
+
+                        <div id="debt-results" class="result-box hidden">
+                            <div class="result-title">📅 Payoff Timeline</div>
+                            <div class="metric-grid">
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Debt</div>
+                                    <div class="metric-value negative" id="total-debt">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Time to Payoff</div>
+                                    <div class="metric-value" id="payoff-time">0 months</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Total Interest Paid</div>
+                                    <div class="metric-value negative" id="total-interest">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Debt-Free Date</div>
+                                    <div class="metric-value" id="debt-free-date">--</div>
+                                </div>
+                            </div>
+
+                            <div id="debt-timeline" style="margin-top: 25px;"></div>
+
+                            <div id="debt-chart" class="chart-container">
+                                <canvas id="debt-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 4: Financial Dashboard -->
+                <div class="module" id="module-dashboard" style="display: none;">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <span class="module-icon">🎯</span>
+                            <h2>Financial Dashboard</h2>
+                        </div>
+                    </div>
+                    <div class="module-content" id="content-dashboard">
+                        <div class="info-banner">
+                            <strong>💡 Financial Independence:</strong> Track your path to financial freedom by understanding key metrics and milestones.
+                        </div>
+
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label>Annual Income (Gross)</label>
+                                <input type="number" id="dashboard-income" value="75000" min="0" step="5000">
+                            </div>
+                            <div class="input-group">
+                                <label>Annual Expenses</label>
+                                <input type="number" id="dashboard-expenses" value="50000" min="0" step="5000">
+                            </div>
+                            <div class="input-group">
+                                <label>Current Net Worth</label>
+                                <input type="number" id="dashboard-networth" value="50000" min="0" step="10000">
+                            </div>
+                            <div class="input-group">
+                                <label>Expected Return (%)
+                                    <span class="tooltip">ℹ️
+                                        <span class="tooltiptext">Historical stock market average is ~7% after inflation.</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="dashboard-return" value="7" min="0" max="20" step="0.5">
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="calculateDashboard()">Calculate Financial Metrics</button>
+                            <button class="btn btn-secondary" onclick="saveDashboard()">Save Dashboard</button>
+                        </div>
+
+                        <div id="dashboard-results" class="result-box hidden">
+                            <div class="result-title">📊 Your Financial Snapshot</div>
+
+                            <div class="metric-grid">
+                                <div class="metric-card">
+                                    <div class="metric-label">Savings Rate</div>
+                                    <div class="metric-value positive" id="dash-savings-rate">0%</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">FI Number
+                                        <span class="tooltip">ℹ️
+                                            <span class="tooltiptext">25x annual expenses (4% rule for retirement)</span>
+                                        </span>
+                                    </div>
+                                    <div class="metric-value" id="dash-fi-number">$0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Years to FI</div>
+                                    <div class="metric-value" id="dash-years-fi">0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Monthly Savings</div>
+                                    <div class="metric-value positive" id="dash-monthly-savings">$0</div>
+                                </div>
+                            </div>
+
+                            <h4 style="color: #8C1515; margin: 25px 0 15px 0;">💰 Net Worth Trajectory</h4>
+                            <div id="dashboard-chart" class="chart-container">
+                                <canvas id="dashboard-canvas"></canvas>
+                            </div>
+
+                            <h4 style="color: #8C1515; margin: 25px 0 15px 0;">⏰ Your Money = Your Time</h4>
+                            <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #E4E1D8;">
+                                <p style="margin-bottom: 15px; color: #5F574F;">Based on your hourly rate of <strong id="hourly-rate">$0</strong>:</p>
+                                <table class="comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Purchase</th>
+                                            <th>Cost</th>
+                                            <th>Hours of Work</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="time-value-table">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Saved Scenarios -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">
+                        <h3>💾 Saved Scenarios</h3>
+                        <p>Your calculations & simulations</p>
+                    </div>
+                    <div id="saved-list">
+                        <div style="text-align: center; padding: 30px; color: #999;">
+                            <svg style="width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.3;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p>No saved items yet.<br>Run calculations to save them here.</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 15px;" onclick="clearAllSaved()">Clear All</button>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">
+                        <h3>📈 Quick Stats</h3>
+                        <p>Personal finance benchmarks</p>
+                    </div>
+                    <div style="font-size: 13px; color: #2E2D29; line-height: 1.8;">
+                        <div style="margin-bottom: 12px; padding: 10px; background: #F8F8F8; border-radius: 8px;">
+                            <strong style="color: #8C1515;">Emergency Fund:</strong><br>
+                            3-6 months of expenses
+                        </div>
+                        <div style="margin-bottom: 12px; padding: 10px; background: #F8F8F8; border-radius: 8px;">
+                            <strong style="color: #8C1515;">Savings Rate:</strong><br>
+                            Target 20%+ of income
+                        </div>
+                        <div style="margin-bottom: 12px; padding: 10px; background: #F8F8F8; border-radius: 8px;">
+                            <strong style="color: #8C1515;">Housing Costs:</strong><br>
+                            Keep below 30% of income
+                        </div>
+                        <div style="margin-bottom: 12px; padding: 10px; background: #F8F8F8; border-radius: 8px;">
+                            <strong style="color: #8C1515;">Retirement:</strong><br>
+                            Save 15% from age 25-65
+                        </div>
+                        <div style="padding: 10px; background: #F8F8F8; border-radius: 8px;">
+                            <strong style="color: #8C1515;">4% Rule:</strong><br>
+                            25x annual expenses for FI
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== GLOBAL STATE =====
+        let savedData = JSON.parse(localStorage.getItem('cardinalFinanceData')) || [];
+        let selectedRiskProfile = 'medium';
+        let expenses = [];
+        let debts = [];
+
+        // Chart data for hover interactions
+        let chartData = {
+            portfolio: null,
+            debt: null,
+            dashboard: null
+        };
+
+        // ===== CHART TOOLTIP UTILITIES =====
+        function showChartTooltip(canvasX, canvasY, clientX, clientY, text) {
+            const tooltip = document.getElementById('chart-tooltip');
+            tooltip.innerHTML = text;
+
+            const tooltipWidth = 150;
+            const tooltipHeight = 60;
+
+            // Position above the point by default
+            let left = clientX - tooltipWidth / 2;
+            let top = clientY - tooltipHeight - 15;
+
+            // If would go off top, show below the point
+            if (top < window.scrollY + 10) {
+                top = clientY + 15;
+            }
+
+            // Keep within horizontal bounds
+            if (left < window.scrollX + 10) left = window.scrollX + 10;
+            if (left + tooltipWidth > window.innerWidth + window.scrollX - 20) {
+                left = window.innerWidth + window.scrollX - tooltipWidth - 20;
+            }
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.classList.add('show');
+        }
+
+        function hideChartTooltip() {
+            document.getElementById('chart-tooltip').classList.remove('show');
+        }
+
+        function findNearestDataPoint(canvasX, canvasY, dataPoints, padding, chartWidth, chartHeight) {
+            let nearest = null;
+            let minDist = 50; // Max distance to consider a "hit" (increased for easier hovering)
+
+            dataPoints.forEach(point => {
+                const dist = Math.sqrt(Math.pow(canvasX - point.x, 2) + Math.pow(canvasY - point.y, 2));
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = point;
+                }
+            });
+
+            return nearest;
+        }
+
+        // ===== INITIALIZATION =====
+        window.addEventListener('load', function() {
+            initializeBudget();
+            initializeDebt();
+            displaySavedData();
+            updateAllocation();
+        });
+
+        // ===== TAB NAVIGATION =====
+        function switchTab(tabId) {
+            // Hide all modules
+            document.querySelectorAll('.module').forEach(module => {
+                module.style.display = 'none';
+            });
+
+            // Show selected module
+            var mod = document.getElementById('module-' + tabId);
+            if (mod) mod.style.display = 'block';
+
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // ===== BUDGET BUILDER =====
+        function initializeBudget() {
+            expenses = [
+                {name: 'Rent/Mortgage', amount: 1500, category: 'needs'},
+                {name: 'Groceries', amount: 600, category: 'needs'},
+                {name: 'Utilities', amount: 150, category: 'needs'},
+                {name: 'Transportation', amount: 300, category: 'needs'},
+                {name: 'Insurance', amount: 200, category: 'needs'},
+                {name: 'Entertainment', amount: 250, category: 'wants'},
+                {name: 'Dining Out', amount: 350, category: 'wants'},
+                {name: 'Shopping', amount: 150, category: 'wants'},
+                {name: 'Savings', amount: 1500, category: 'savings'}
+            ];
+            renderExpenses();
+        }
+
+        function renderExpenses() {
+            const container = document.getElementById('expense-list');
+            container.innerHTML = '';
+
+            expenses.forEach((expense, index) => {
+                const div = document.createElement('div');
+                div.className = 'expense-item';
+                div.innerHTML = `
+                    <input type="text" value="${expense.name}" onchange="expenses[${index}].name = this.value" placeholder="Expense name">
+                    <input type="number" value="${expense.amount}" onchange="updateExpenseAmount(${index}, this.value)" min="0" step="10" placeholder="Amount">
+                    <select onchange="expenses[${index}].category = this.value">
+                        <option value="needs" ${expense.category === 'needs' ? 'selected' : ''}>Needs</option>
+                        <option value="wants" ${expense.category === 'wants' ? 'selected' : ''}>Wants</option>
+                        <option value="savings" ${expense.category === 'savings' ? 'selected' : ''}>Savings</option>
+                    </select>
+                    <button class="remove-item-btn" onclick="removeExpense(${index})">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateExpenseAmount(index, value) {
+            const newAmount = parseFloat(value) || 0;
+            const oldAmount = expenses[index].amount;
+            expenses[index].amount = newAmount;
+
+            // If this is a savings item, don't auto-balance
+            if (expenses[index].category === 'savings') {
+                return;
+            }
+
+            // Auto-balance: adjust savings based on expense change
+            const savingsIndex = expenses.findIndex(e => e.category === 'savings');
+            if (savingsIndex !== -1) {
+                const difference = newAmount - oldAmount;
+                expenses[savingsIndex].amount = Math.max(0, expenses[savingsIndex].amount - difference);
+                renderExpenses();
+            }
+        }
+
+        function autoBalanceBudget() {
+            const income = parseFloat(document.getElementById('budget-income').value) || 0;
+
+            // Calculate total non-savings expenses
+            let totalNonSavings = 0;
+            expenses.forEach(exp => {
+                if (exp.category !== 'savings') {
+                    totalNonSavings += exp.amount;
+                }
+            });
+
+            // Set savings to the remainder
+            const savingsIndex = expenses.findIndex(e => e.category === 'savings');
+            if (savingsIndex !== -1) {
+                expenses[savingsIndex].amount = Math.max(0, income - totalNonSavings);
+                renderExpenses();
+            }
+        }
+
+        function addExpenseItem() {
+            expenses.push({name: '', amount: 0, category: 'needs'});
+            renderExpenses();
+        }
+
+        function removeExpense(index) {
+            // Don't allow removing the last savings item
+            if (expenses[index].category === 'savings' && expenses.filter(e => e.category === 'savings').length === 1) {
+                alert('Budget must have at least one savings item!');
+                return;
+            }
+
+            expenses.splice(index, 1);
+            renderExpenses();
+
+            // Auto-balance after removing
+            autoBalanceBudget();
+        }
+
+        function calculateBudget() {
+            const income = parseFloat(document.getElementById('budget-income').value) || 0;
+
+            let totalExpenses = 0;
+            let needsTotal = 0;
+            let wantsTotal = 0;
+            let savingsTotal = 0;
+
+            expenses.forEach(exp => {
+                totalExpenses += exp.amount;
+                if (exp.category === 'needs') needsTotal += exp.amount;
+                else if (exp.category === 'wants') wantsTotal += exp.amount;
+                else if (exp.category === 'savings') savingsTotal += exp.amount;
+            });
+
+            const totalSpending = needsTotal + wantsTotal;
+            const savingsRate = income > 0 ? ((savingsTotal / income) * 100) : 0;
+
+            const needsPercent = income > 0 ? (needsTotal / income * 100) : 0;
+            const wantsPercent = income > 0 ? (wantsTotal / income * 100) : 0;
+            const savingsPercent = income > 0 ? (savingsTotal / income * 100) : 0;
+
+            document.getElementById('display-income').textContent = '$' + income.toLocaleString();
+            document.getElementById('total-spending').textContent = '$' + totalSpending.toLocaleString();
+            document.getElementById('total-savings').textContent = '$' + savingsTotal.toLocaleString();
+
+            document.getElementById('savings-rate').textContent = savingsRate.toFixed(1) + '%';
+            document.getElementById('savings-rate').className = 'metric-value ' + (savingsRate >= 20 ? 'positive' : savingsRate >= 10 ? '' : 'negative');
+
+            document.getElementById('needs-percent').textContent = needsPercent.toFixed(0) + '% Needs';
+            document.getElementById('needs-bar').style.width = Math.min(needsPercent, 100) + '%';
+
+            document.getElementById('wants-percent').textContent = wantsPercent.toFixed(0) + '% Wants';
+            document.getElementById('wants-bar').style.width = Math.min(wantsPercent, 100) + '%';
+
+            document.getElementById('savings-percent').textContent = savingsPercent.toFixed(0) + '% Savings';
+            document.getElementById('savings-bar').style.width = Math.min(savingsPercent, 100) + '%';
+
+            document.getElementById('budget-results').classList.remove('hidden');
+
+            drawBudgetChart(needsTotal, wantsTotal, savingsTotal);
+        }
+
+        function drawBudgetChart(needs, wants, savings) {
+            const canvas = document.getElementById('budget-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas to fill container
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 380;
+
+            const total = needs + wants + savings;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 40;
+
+            const data = [
+                {value: needs, color: '#dc3545', label: 'Needs'},
+                {value: wants, color: '#ffc107', label: 'Wants'},
+                {value: savings, color: '#28a745', label: 'Savings'}
+            ];
+
+            let currentAngle = -Math.PI / 2;
+
+            data.forEach(item => {
+                const sliceAngle = (item.value / total) * 2 * Math.PI;
+
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+
+                const labelAngle = currentAngle + sliceAngle / 2;
+                const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+                const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(item.label, labelX, labelY - 10);
+                ctx.fillText('$' + item.value.toLocaleString(), labelX, labelY + 10);
+
+                currentAngle += sliceAngle;
+            });
+        }
+
+        function saveBudget() {
+            const income = parseFloat(document.getElementById('budget-income').value) || 0;
+            const data = {
+                type: 'Budget',
+                timestamp: new Date().toISOString(),
+                data: {income, expenses: [...expenses]}
+            };
+            savedData.unshift(data);
+            localStorage.setItem('cardinalFinanceData', JSON.stringify(savedData));
+            displaySavedData();
+            showFeedback('Budget saved successfully!');
+        }
+
+        function resetBudget() {
+            document.getElementById('budget-income').value = 5000;
+            initializeBudget();
+            document.getElementById('budget-results').classList.add('hidden');
+        }
+
+        // ===== PORTFOLIO SIMULATOR =====
+        function updateAllocation() {
+            const stocks = parseInt(document.getElementById('stocks-slider').value);
+            const bonds = parseInt(document.getElementById('bonds-slider').value);
+            const cash = parseInt(document.getElementById('cash-slider').value);
+
+            const total = stocks + bonds + cash;
+
+            if (total > 100) {
+                const excess = total - 100;
+                const newCash = Math.max(0, cash - excess);
+                document.getElementById('cash-slider').value = newCash;
+            }
+
+            const finalStocks = parseInt(document.getElementById('stocks-slider').value);
+            const finalBonds = parseInt(document.getElementById('bonds-slider').value);
+            const finalCash = parseInt(document.getElementById('cash-slider').value);
+
+            document.getElementById('stocks-display').textContent = finalStocks + '%';
+            document.getElementById('bonds-display').textContent = finalBonds + '%';
+            document.getElementById('cash-display').textContent = finalCash + '%';
+
+            const bar = document.getElementById('allocation-bar');
+            bar.innerHTML = `
+                <div class="asset-segment" style="width: ${finalStocks}%; background: linear-gradient(135deg, #8C1515 0%, #B1040E 100%);">
+                    ${finalStocks > 10 ? finalStocks + '% Stocks' : ''}
+                </div>
+                <div class="asset-segment" style="width: ${finalBonds}%; background: linear-gradient(135deg, #2E2D29 0%, #5F574F 100%);">
+                    ${finalBonds > 10 ? finalBonds + '% Bonds' : ''}
+                </div>
+                <div class="asset-segment" style="width: ${finalCash}%; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    ${finalCash > 10 ? finalCash + '% Cash' : ''}
+                </div>
+            `;
+        }
+
+        function selectRisk(level) {
+            selectedRiskProfile = level;
+            document.querySelectorAll('.risk-level').forEach(el => el.classList.remove('selected'));
+            event.target.closest('.risk-level').classList.add('selected');
+
+            if (level === 'low') {
+                document.getElementById('stocks-slider').value = 30;
+                document.getElementById('bonds-slider').value = 50;
+                document.getElementById('cash-slider').value = 20;
+            } else if (level === 'medium') {
+                document.getElementById('stocks-slider').value = 60;
+                document.getElementById('bonds-slider').value = 30;
+                document.getElementById('cash-slider').value = 10;
+            } else if (level === 'high') {
+                document.getElementById('stocks-slider').value = 85;
+                document.getElementById('bonds-slider').value = 10;
+                document.getElementById('cash-slider').value = 5;
+            }
+            updateAllocation();
+        }
+
+        function runPortfolioSimulation() {
+            const initial = parseFloat(document.getElementById('portfolio-initial').value) || 0;
+            const monthly = parseFloat(document.getElementById('portfolio-monthly').value) || 0;
+            const years = parseInt(document.getElementById('portfolio-years').value) || 1;
+            const stocks = parseInt(document.getElementById('stocks-slider').value) / 100;
+            const bonds = parseInt(document.getElementById('bonds-slider').value) / 100;
+            const cash = parseInt(document.getElementById('cash-slider').value) / 100;
+
+            // Historical parameters based on asset classes
+            // Stocks: ~10% return, ~18% std dev (annual)
+            // Bonds: ~5% return, ~6% std dev (annual)
+            // Cash: ~2% return, ~0.5% std dev (annual)
+            const stockMean = 0.10;
+            const stockStdDev = 0.18;
+            const bondMean = 0.05;
+            const bondStdDev = 0.06;
+            const cashMean = 0.02;
+            const cashStdDev = 0.005;
+
+            const scenarios = 1000;
+            const months = years * 12;
+            const finalValues = [];
+
+            // Box-Muller transform for normal distribution
+            function normalRandom(mean, stdDev) {
+                const u1 = Math.random();
+                const u2 = Math.random();
+                const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                return mean + stdDev * z0;
+            }
+
+            for (let s = 0; s < scenarios; s++) {
+                let balance = initial;
+
+                for (let m = 0; m < months; m++) {
+                    balance += monthly;
+
+                    // Generate monthly returns using normal distribution
+                    const stockReturn = normalRandom(stockMean / 12, stockStdDev / Math.sqrt(12));
+                    const bondReturn = normalRandom(bondMean / 12, bondStdDev / Math.sqrt(12));
+                    const cashReturn = normalRandom(cashMean / 12, cashStdDev / Math.sqrt(12));
+
+                    const portfolioReturn = stocks * stockReturn + bonds * bondReturn + cash * cashReturn;
+                    balance *= (1 + portfolioReturn);
+                }
+
+                finalValues.push(balance);
+            }
+
+            finalValues.sort((a, b) => a - b);
+
+            const expected = finalValues.reduce((a, b) => a + b) / scenarios;
+            const best = finalValues[Math.floor(scenarios * 0.9)];
+            const worst = finalValues[Math.floor(scenarios * 0.1)];
+            const totalInvested = initial + (monthly * months);
+
+            // Calculate portfolio expected return and volatility
+            const expectedReturn = stocks * stockMean + bonds * bondMean + cash * cashMean;
+            const portfolioVariance = Math.pow(stocks * stockStdDev, 2) +
+                                     Math.pow(bonds * bondStdDev, 2) +
+                                     Math.pow(cash * cashStdDev, 2);
+            const portfolioVolatility = Math.sqrt(portfolioVariance);
+
+            document.getElementById('portfolio-expected').textContent = '$' + Math.round(expected).toLocaleString();
+            document.getElementById('portfolio-best').textContent = '$' + Math.round(best).toLocaleString();
+            document.getElementById('portfolio-worst').textContent = '$' + Math.round(worst).toLocaleString();
+            document.getElementById('portfolio-invested').textContent = '$' + totalInvested.toLocaleString();
+
+            document.getElementById('portfolio-return').textContent = (expectedReturn * 100).toFixed(2) + '%';
+            document.getElementById('portfolio-volatility').textContent = (portfolioVolatility * 100).toFixed(2) + '%';
+
+            const lowerBound = (expectedReturn - portfolioVolatility) * 100;
+            const upperBound = (expectedReturn + portfolioVolatility) * 100;
+            document.getElementById('return-range').textContent = lowerBound.toFixed(1) + '% to ' + upperBound.toFixed(1) + '%';
+
+            document.getElementById('portfolio-results').classList.remove('hidden');
+
+            // Calculate annualized returns for histogram
+            const returns = finalValues.map(fv => {
+                const totalInvestedForCalc = initial + (monthly * months);
+                if (totalInvestedForCalc === 0) return 0;
+                const totalReturn = ((fv - totalInvestedForCalc) / totalInvestedForCalc);
+                const annualizedReturn = (Math.pow(1 + totalReturn, 1 / years) - 1) * 100;
+                return annualizedReturn;
+            });
+
+            drawPortfolioChart(years, initial, monthly, stocks, bonds, cash);
+            drawPortfolioHistogram(returns, years);
+        }
+
+        function drawPortfolioChart(years, initial, monthly, stocks, bonds, cash) {
+            const canvas = document.getElementById('portfolio-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas to fill container
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 380;
+
+            const padding = 50;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            // Historical parameters
+            const stockMean = 0.10;
+            const stockStdDev = 0.18;
+            const bondMean = 0.05;
+            const bondStdDev = 0.06;
+            const cashMean = 0.02;
+            const cashStdDev = 0.005;
+
+            function normalRandom(mean, stdDev) {
+                const u1 = Math.random();
+                const u2 = Math.random();
+                const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                return mean + stdDev * z0;
+            }
+
+            const simulations = 50;
+            const months = years * 12;
+            const paths = [];
+
+            for (let s = 0; s < simulations; s++) {
+                const path = [initial];
+                let balance = initial;
+
+                for (let m = 0; m < months; m++) {
+                    balance += monthly;
+                    const stockReturn = normalRandom(stockMean / 12, stockStdDev / Math.sqrt(12));
+                    const bondReturn = normalRandom(bondMean / 12, bondStdDev / Math.sqrt(12));
+                    const cashReturn = normalRandom(cashMean / 12, cashStdDev / Math.sqrt(12));
+                    const portfolioReturn = stocks * stockReturn + bonds * bondReturn + cash * cashReturn;
+                    balance *= (1 + portfolioReturn);
+                    path.push(balance);
+                }
+                paths.push(path);
+            }
+
+            const maxValue = Math.max(...paths.flat());
+            const minValue = Math.min(...paths.flat());
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw individual simulation paths
+            paths.forEach(path => {
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(140, 21, 21, 0.12)';
+                ctx.lineWidth = 1.5;
+
+                path.forEach((value, index) => {
+                    const x = padding + (index / months) * chartWidth;
+                    const y = padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
+
+                    if (index === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+
+                ctx.stroke();
+            });
+
+            // Calculate and draw average path
+            const avgPath = [];
+            for (let i = 0; i <= months; i++) {
+                const sum = paths.reduce((acc, path) => acc + path[i], 0);
+                avgPath.push(sum / paths.length);
+            }
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#8C1515';
+            ctx.lineWidth = 4;
+
+            avgPath.forEach((value, index) => {
+                const x = padding + (index / months) * chartWidth;
+                const y = padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
+
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Today', padding, canvas.height - 10);
+            ctx.fillText(years + ' Years', padding + chartWidth, canvas.height - 10);
+
+            ctx.textAlign = 'right';
+            ctx.fillText('$' + Math.round(maxValue / 1000) + 'K', padding - 8, padding + 15);
+            ctx.fillText('$' + Math.round(minValue / 1000) + 'K', padding - 8, padding + chartHeight);
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Portfolio Growth Scenarios (50 simulations)', padding, padding - 15);
+
+            // Legend
+            ctx.textAlign = 'right';
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#8C1515';
+            ctx.fillText('— Expected Path', canvas.width - padding, padding - 15);
+
+            // Store data for hover interactions
+            const dataPoints = avgPath.map((value, index) => ({
+                x: padding + (index / months) * chartWidth,
+                y: padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight,
+                value: value,
+                year: (index / 12).toFixed(1)
+            }));
+
+            chartData.portfolio = { dataPoints, padding, chartWidth, chartHeight };
+
+            // Add mouse move listener for tooltip
+            canvas.onmousemove = function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const nearest = findNearestDataPoint(x, y, dataPoints, padding, chartWidth, chartHeight);
+
+                if (nearest) {
+                    canvas.style.cursor = 'pointer';
+                    showChartTooltip(
+                        nearest.x,
+                        nearest.y,
+                        e.clientX,
+                        e.clientY,
+                        `Year ${nearest.year}<br><strong>$${Math.round(nearest.value).toLocaleString()}</strong>`
+                    );
+                } else {
+                    canvas.style.cursor = 'default';
+                    hideChartTooltip();
+                }
+            };
+
+            canvas.onmouseleave = function() {
+                canvas.style.cursor = 'default';
+                hideChartTooltip();
+            };
+        }
+
+        function drawPortfolioHistogram(returns, years) {
+            const canvas = document.getElementById('portfolio-histogram-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas to fill container
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 380;
+
+            const padding = 50;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Create histogram bins
+            const minReturn = Math.min(...returns);
+            const maxReturn = Math.max(...returns);
+            const binCount = 20;
+            const binWidth = (maxReturn - minReturn) / binCount;
+
+            const bins = new Array(binCount).fill(0);
+            returns.forEach(r => {
+                const binIndex = Math.min(Math.floor((r - minReturn) / binWidth), binCount - 1);
+                bins[binIndex]++;
+            });
+
+            const maxBinValue = Math.max(...bins);
+
+            // Draw bars
+            const barWidth = chartWidth / binCount;
+            bins.forEach((count, i) => {
+                const barHeight = (count / maxBinValue) * chartHeight;
+                const x = padding + i * barWidth;
+                const y = padding + chartHeight - barHeight;
+
+                // Color gradient based on return value
+                const returnValue = minReturn + (i + 0.5) * binWidth;
+                const color = returnValue < 0 ? 'rgba(220, 53, 69, 0.7)' :
+                             returnValue < 7 ? 'rgba(255, 193, 7, 0.7)' :
+                             'rgba(40, 167, 69, 0.7)';
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, barWidth - 2, barHeight);
+
+                // Outline
+                ctx.strokeStyle = '#2E2D29';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, barWidth - 2, barHeight);
+            });
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+
+            // X-axis labels (return percentages)
+            const labelCount = 5;
+            for (let i = 0; i <= labelCount; i++) {
+                const returnVal = minReturn + (i / labelCount) * (maxReturn - minReturn);
+                const x = padding + (i / labelCount) * chartWidth;
+                ctx.fillText(returnVal.toFixed(1) + '%', x, canvas.height - 15);
+            }
+
+            // Y-axis label
+            ctx.save();
+            ctx.translate(15, padding + chartHeight / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillText('Frequency', 0, 0);
+            ctx.restore();
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Annualized Return Distribution (${years}-year horizon)`, padding, padding - 15);
+
+            // Statistical annotations
+            const median = returns.sort((a, b) => a - b)[Math.floor(returns.length / 2)];
+            const mean = returns.reduce((a, b) => a + b) / returns.length;
+
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#2E2D29';
+            ctx.fillText(`Mean: ${mean.toFixed(2)}%`, canvas.width - padding, padding - 15);
+            ctx.fillText(`Median: ${median.toFixed(2)}%`, canvas.width - padding, padding + 5);
+
+            // Color legend
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#dc3545';
+            ctx.fillRect(padding, padding + 10, 15, 15);
+            ctx.fillStyle = '#2E2D29';
+            ctx.fillText('Negative', padding + 20, padding + 22);
+
+            ctx.fillStyle = '#ffc107';
+            ctx.fillRect(padding + 100, padding + 10, 15, 15);
+            ctx.fillStyle = '#2E2D29';
+            ctx.fillText('0-7%', padding + 120, padding + 22);
+
+            ctx.fillStyle = '#28a745';
+            ctx.fillRect(padding + 170, padding + 10, 15, 15);
+            ctx.fillStyle = '#2E2D29';
+            ctx.fillText('>7%', padding + 190, padding + 22);
+        }
+
+        function savePortfolio() {
+            const data = {
+                type: 'Portfolio',
+                timestamp: new Date().toISOString(),
+                data: {
+                    initial: parseFloat(document.getElementById('portfolio-initial').value),
+                    monthly: parseFloat(document.getElementById('portfolio-monthly').value),
+                    years: parseInt(document.getElementById('portfolio-years').value),
+                    allocation: {
+                        stocks: parseInt(document.getElementById('stocks-slider').value),
+                        bonds: parseInt(document.getElementById('bonds-slider').value),
+                        cash: parseInt(document.getElementById('cash-slider').value)
+                    }
+                }
+            };
+            savedData.unshift(data);
+            localStorage.setItem('cardinalFinanceData', JSON.stringify(savedData));
+            displaySavedData();
+            showFeedback('Portfolio saved successfully!');
+        }
+
+        // ===== DEBT MANAGEMENT =====
+        function initializeDebt() {
+            debts = [
+                {name: 'Student Loan', balance: 30000, rate: 5.5, minPayment: 300},
+                {name: 'Credit Card', balance: 5000, rate: 18.9, minPayment: 150}
+            ];
+            renderDebts();
+        }
+
+        function renderDebts() {
+            const container = document.getElementById('debt-list');
+            container.innerHTML = '';
+
+            debts.forEach((debt, index) => {
+                const div = document.createElement('div');
+                div.className = 'expense-item';
+                div.style.gridTemplateColumns = '1fr 1fr 1fr 1fr auto';
+                div.innerHTML = `
+                    <input type="text" value="${debt.name}" onchange="debts[${index}].name = this.value" placeholder="Debt name">
+                    <input type="number" value="${debt.balance}" onchange="debts[${index}].balance = parseFloat(this.value) || 0" min="0" step="100" placeholder="Balance">
+                    <input type="number" value="${debt.rate}" onchange="debts[${index}].rate = parseFloat(this.value) || 0" min="0" max="100" step="0.1" placeholder="Rate %">
+                    <input type="number" value="${debt.minPayment}" onchange="debts[${index}].minPayment = parseFloat(this.value) || 0" min="0" step="10" placeholder="Min payment">
+                    <button class="remove-item-btn" onclick="removeDebt(${index})">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addDebtItem() {
+            debts.push({name: '', balance: 0, rate: 0, minPayment: 0});
+            renderDebts();
+        }
+
+        function removeDebt(index) {
+            debts.splice(index, 1);
+            renderDebts();
+        }
+
+        function calculateDebtPayoff() {
+            const monthlyBudget = parseFloat(document.getElementById('debt-monthly-payment').value) || 0;
+            const strategy = document.getElementById('debt-strategy').value;
+
+            let debtsCopy = debts.map(d => ({...d}));
+
+            if (strategy === 'avalanche') {
+                debtsCopy.sort((a, b) => b.rate - a.rate);
+            } else {
+                debtsCopy.sort((a, b) => a.balance - b.balance);
+            }
+
+            let totalDebt = debtsCopy.reduce((sum, d) => sum + d.balance, 0);
+            let totalInterest = 0;
+            let months = 0;
+            const timeline = [];
+
+            while (debtsCopy.some(d => d.balance > 0) && months < 600) {
+                months++;
+                let remaining = monthlyBudget;
+
+                debtsCopy.forEach(debt => {
+                    if (debt.balance > 0) {
+                        const interest = debt.balance * (debt.rate / 100 / 12);
+                        totalInterest += interest;
+                        debt.balance += interest;
+
+                        const payment = Math.min(debt.minPayment, remaining, debt.balance);
+                        debt.balance -= payment;
+                        remaining -= payment;
+
+                        if (debt.balance < 0) debt.balance = 0;
+                    }
+                });
+
+                if (remaining > 0) {
+                    for (let debt of debtsCopy) {
+                        if (debt.balance > 0) {
+                            const extraPayment = Math.min(remaining, debt.balance);
+                            debt.balance -= extraPayment;
+                            remaining -= extraPayment;
+                            break;
+                        }
+                    }
+                }
+
+                if (months % 12 === 0) {
+                    timeline.push({
+                        year: months / 12,
+                        remaining: debtsCopy.reduce((sum, d) => sum + d.balance, 0)
+                    });
+                }
+            }
+
+            const debtFreeDate = new Date();
+            debtFreeDate.setMonth(debtFreeDate.getMonth() + months);
+
+            document.getElementById('total-debt').textContent = '$' + totalDebt.toLocaleString();
+            document.getElementById('payoff-time').textContent = months + ' months (' + (months / 12).toFixed(1) + ' years)';
+            document.getElementById('total-interest').textContent = '$' + Math.round(totalInterest).toLocaleString();
+            document.getElementById('debt-free-date').textContent = debtFreeDate.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+
+            const timelineHtml = timeline.map(t => `
+                <div class="timeline-item">
+                    <div class="timeline-year">Year ${t.year}</div>
+                    <div class="timeline-value">$${Math.round(t.remaining).toLocaleString()} remaining</div>
+                </div>
+            `).join('');
+            document.getElementById('debt-timeline').innerHTML = timelineHtml;
+
+            document.getElementById('debt-results').classList.remove('hidden');
+
+            drawDebtChart(timeline, totalDebt);
+        }
+
+        function drawDebtChart(timeline, totalDebt) {
+            const canvas = document.getElementById('debt-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas to fill container
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 380;
+
+            const padding = 50;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            timeline.unshift({year: 0, remaining: totalDebt});
+
+            // Fill area under curve
+            ctx.fillStyle = 'rgba(220, 53, 69, 0.1)';
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + chartHeight);
+            timeline.forEach((point, index) => {
+                const x = padding + (index / (timeline.length - 1)) * chartWidth;
+                const y = padding + chartHeight - (point.remaining / totalDebt) * chartHeight;
+                ctx.lineTo(x, y);
+            });
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw debt reduction line
+            ctx.beginPath();
+            ctx.strokeStyle = '#dc3545';
+            ctx.lineWidth = 4;
+
+            timeline.forEach((point, index) => {
+                const x = padding + (index / (timeline.length - 1)) * chartWidth;
+                const y = padding + chartHeight - (point.remaining / totalDebt) * chartHeight;
+
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Y-axis labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText('$' + Math.round(totalDebt / 1000) + 'K', padding - 8, padding + 15);
+            ctx.fillText('$0', padding - 8, padding + chartHeight);
+
+            // X-axis labels (years)
+            ctx.textAlign = 'center';
+            ctx.font = '12px Arial';
+            const maxYears = timeline[timeline.length - 1].year;
+            const numLabels = Math.min(6, maxYears + 1);
+            for (let i = 0; i < numLabels; i++) {
+                const year = Math.round((maxYears / (numLabels - 1)) * i);
+                const x = padding + (year / maxYears) * chartWidth;
+                ctx.fillText('Year ' + year, x, padding + chartHeight + 20);
+            }
+
+            // Title
+            ctx.fillStyle = '#dc3545';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Debt Payoff Timeline', padding, padding - 15);
+
+            // Store data for hover interactions
+            const dataPoints = timeline.map((point, index) => ({
+                x: padding + (index / (timeline.length - 1)) * chartWidth,
+                y: padding + chartHeight - (point.remaining / totalDebt) * chartHeight,
+                value: point.remaining,
+                year: point.year
+            }));
+
+            chartData.debt = { dataPoints, padding, chartWidth, chartHeight };
+
+            // Add mouse move listener for tooltip
+            canvas.onmousemove = function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const nearest = findNearestDataPoint(x, y, dataPoints, padding, chartWidth, chartHeight);
+
+                if (nearest) {
+                    canvas.style.cursor = 'pointer';
+                    showChartTooltip(
+                        nearest.x,
+                        nearest.y,
+                        e.clientX,
+                        e.clientY,
+                        `Year ${nearest.year}<br><strong>$${Math.round(nearest.value).toLocaleString()} remaining</strong>`
+                    );
+                } else {
+                    canvas.style.cursor = 'default';
+                    hideChartTooltip();
+                }
+            };
+
+            canvas.onmouseleave = function() {
+                canvas.style.cursor = 'default';
+                hideChartTooltip();
+            };
+        }
+
+        function saveDebtPlan() {
+            const data = {
+                type: 'Debt Plan',
+                timestamp: new Date().toISOString(),
+                data: {
+                    debts: [...debts],
+                    monthlyPayment: parseFloat(document.getElementById('debt-monthly-payment').value),
+                    strategy: document.getElementById('debt-strategy').value
+                }
+            };
+            savedData.unshift(data);
+            localStorage.setItem('cardinalFinanceData', JSON.stringify(savedData));
+            displaySavedData();
+            showFeedback('Debt plan saved successfully!');
+        }
+
+        // ===== FINANCIAL DASHBOARD =====
+        function calculateDashboard() {
+            const annualIncome = parseFloat(document.getElementById('dashboard-income').value) || 0;
+            const annualExpenses = parseFloat(document.getElementById('dashboard-expenses').value) || 0;
+            const netWorth = parseFloat(document.getElementById('dashboard-networth').value) || 0;
+            const returnRate = parseFloat(document.getElementById('dashboard-return').value) / 100 || 0.07;
+
+            const annualSavings = annualIncome - annualExpenses;
+            const savingsRate = annualIncome > 0 ? (annualSavings / annualIncome * 100) : 0;
+            const fiNumber = annualExpenses * 25;
+            const monthlySavings = annualSavings / 12;
+
+            let yearsToFI = 0;
+            let currentNW = netWorth;
+            while (currentNW < fiNumber && yearsToFI < 100) {
+                currentNW = currentNW * (1 + returnRate) + annualSavings;
+                yearsToFI++;
+            }
+
+            document.getElementById('dash-savings-rate').textContent = savingsRate.toFixed(1) + '%';
+            document.getElementById('dash-savings-rate').className = 'metric-value ' + (savingsRate >= 20 ? 'positive' : '');
+
+            document.getElementById('dash-fi-number').textContent = '$' + fiNumber.toLocaleString();
+            document.getElementById('dash-years-fi').textContent = yearsToFI + ' years';
+            document.getElementById('dash-monthly-savings').textContent = '$' + monthlySavings.toLocaleString();
+
+            const hourlyRate = annualIncome / 2080;
+            document.getElementById('hourly-rate').textContent = '$' + hourlyRate.toFixed(2);
+
+            const purchases = [
+                {item: 'Coffee ($5)', cost: 5},
+                {item: 'Lunch out ($15)', cost: 15},
+                {item: 'New phone ($1000)', cost: 1000},
+                {item: 'Weekend trip ($500)', cost: 500},
+                {item: 'Monthly rent ($2000)', cost: 2000}
+            ];
+
+            const tableHtml = purchases.map(p => `
+                <tr>
+                    <td>${p.item}</td>
+                    <td>$${p.cost}</td>
+                    <td><strong>${(p.cost / hourlyRate).toFixed(1)} hours</strong></td>
+                </tr>
+            `).join('');
+            document.getElementById('time-value-table').innerHTML = tableHtml;
+
+            document.getElementById('dashboard-results').classList.remove('hidden');
+
+            drawDashboardChart(netWorth, annualSavings, returnRate, fiNumber);
+        }
+
+        function drawDashboardChart(startingNW, annualSavings, returnRate, fiNumber) {
+            const canvas = document.getElementById('dashboard-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas to fill container
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 40;
+            canvas.height = 380;
+
+            const padding = 50;
+            const leftPadding = 80; // Extra padding for y-axis labels
+            const chartWidth = canvas.width - leftPadding - padding;
+            const chartHeight = canvas.height - padding * 2;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const years = 30;
+            const trajectory = [];
+            let nw = startingNW;
+
+            for (let y = 0; y <= years; y++) {
+                trajectory.push(nw);
+                nw = nw * (1 + returnRate) + annualSavings;
+            }
+
+            const maxValue = Math.max(...trajectory, fiNumber);
+
+            ctx.strokeStyle = '#E4E1D8';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            const fiY = padding + chartHeight - (fiNumber / maxValue) * chartHeight;
+            ctx.beginPath();
+            ctx.moveTo(leftPadding, fiY);
+            ctx.lineTo(leftPadding + chartWidth, fiY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#8C1515';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('FI Number: $' + (fiNumber / 1000).toFixed(0) + 'K', leftPadding + 5, fiY - 5);
+
+            // Fill area under curve
+            ctx.fillStyle = 'rgba(140, 21, 21, 0.1)';
+            ctx.beginPath();
+            ctx.moveTo(leftPadding, padding + chartHeight);
+            trajectory.forEach((value, index) => {
+                const x = leftPadding + (index / years) * chartWidth;
+                const y = padding + chartHeight - (value / maxValue) * chartHeight;
+                ctx.lineTo(x, y);
+            });
+            ctx.lineTo(leftPadding + chartWidth, padding + chartHeight);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw net worth trajectory line
+            ctx.beginPath();
+            ctx.strokeStyle = '#8C1515';
+            ctx.lineWidth = 4;
+
+            trajectory.forEach((value, index) => {
+                const x = leftPadding + (index / years) * chartWidth;
+                const y = padding + chartHeight - (value / maxValue) * chartHeight;
+
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            ctx.stroke();
+
+            // Draw axes
+            ctx.strokeStyle = '#2E2D29';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(leftPadding, padding);
+            ctx.lineTo(leftPadding, padding + chartHeight);
+            ctx.lineTo(leftPadding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#2E2D29';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Today', leftPadding, canvas.height - 10);
+            ctx.fillText(years + ' Years', leftPadding + chartWidth, canvas.height - 10);
+
+            ctx.textAlign = 'right';
+            ctx.fillText('$' + Math.round(maxValue / 1000) + 'K', leftPadding - 8, padding + 15);
+            ctx.fillText('$0', leftPadding - 8, padding + chartHeight);
+
+            // Title
+            ctx.fillStyle = '#8C1515';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Net Worth Growth Projection', leftPadding, padding - 15);
+
+            // Store data for hover interactions
+            const dataPoints = trajectory.map((value, index) => ({
+                x: leftPadding + (index / years) * chartWidth,
+                y: padding + chartHeight - (value / maxValue) * chartHeight,
+                value: value,
+                year: index
+            }));
+
+            chartData.dashboard = { dataPoints, leftPadding, chartWidth, chartHeight };
+
+            // Add mouse move listener for tooltip
+            canvas.onmousemove = function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const nearest = findNearestDataPoint(x, y, dataPoints, leftPadding, chartWidth, chartHeight);
+
+                if (nearest) {
+                    canvas.style.cursor = 'pointer';
+                    showChartTooltip(
+                        nearest.x,
+                        nearest.y,
+                        e.clientX,
+                        e.clientY,
+                        `Year ${nearest.year}<br><strong>$${Math.round(nearest.value).toLocaleString()}</strong>`
+                    );
+                } else {
+                    canvas.style.cursor = 'default';
+                    hideChartTooltip();
+                }
+            };
+
+            canvas.onmouseleave = function() {
+                canvas.style.cursor = 'default';
+                hideChartTooltip();
+            };
+        }
+
+        function saveDashboard() {
+            const data = {
+                type: 'Dashboard',
+                timestamp: new Date().toISOString(),
+                data: {
+                    income: parseFloat(document.getElementById('dashboard-income').value),
+                    expenses: parseFloat(document.getElementById('dashboard-expenses').value),
+                    netWorth: parseFloat(document.getElementById('dashboard-networth').value),
+                    returnRate: parseFloat(document.getElementById('dashboard-return').value)
+                }
+            };
+            savedData.unshift(data);
+            localStorage.setItem('cardinalFinanceData', JSON.stringify(savedData));
+            displaySavedData();
+            showFeedback('Dashboard saved successfully!');
+        }
+
+        // ===== SAVED DATA MANAGEMENT =====
+        function displaySavedData() {
+            const container = document.getElementById('saved-list');
+
+            if (savedData.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #999;">
+                        <svg style="width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.3;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p>No saved items yet.<br>Run calculations to save them here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            savedData.forEach((item, index) => {
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+                html += `
+                    <div class="saved-item">
+                        <button class="delete-btn" onclick="deleteSaved(${index})">×</button>
+                        <div class="saved-item-title">${item.type}</div>
+                        <div class="saved-item-date">${formattedDate}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function deleteSaved(index) {
+            savedData.splice(index, 1);
+            localStorage.setItem('cardinalFinanceData', JSON.stringify(savedData));
+            displaySavedData();
+        }
+
+        function clearAllSaved() {
+            if (confirm('Clear all saved data? This cannot be undone.')) {
+                savedData = [];
+                localStorage.setItem('cardinalFinanceData', JSON.stringify(savedData));
+                displaySavedData();
+            }
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function showFeedback(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999; font-weight: 600;';
+            div.textContent = message;
+            document.body.appendChild(div);
+
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transition = 'opacity 0.5s';
+                setTimeout(() => div.remove(), 500);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
