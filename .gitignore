@@ -121,9 +121,8 @@ data/
 stock_data.json
 
 # Build artifacts and temp files
-*.webp
-pic.webp
-banner.webp
+# Keep pic.webp and banner.webp (needed for pages)
+cardinal-calculator/
 
 # Documentation files (keep only README)
 IMPROVEMENTS_SUMMARY.txt
