@@ -1214,6 +1214,13 @@
             }
         }
 
+        // Helper function to calculate geometric mean of returns (returns are in percentage form)
+        function geometricMean(returns) {
+            if (returns.length === 0) return 0;
+            const product = returns.reduce((acc, r) => acc * (1 + r / 100), 1);
+            return (Math.pow(product, 1 / returns.length) - 1) * 100;
+        }
+
         // Helper function to get properly aggregated annual returns from stock data
         function getAnnualReturns(stockData, startYear, endYear = 2025) {
             let sourceData;
@@ -1311,12 +1318,14 @@
                 const annualFilteredReturns = getAnnualReturns(stock, startYear, endYear);
                 console.log(`${ticker}: Got ${annualFilteredReturns.length} annual returns, first few:`, annualFilteredReturns.slice(0, 3));
                 const annualReturns = annualFilteredReturns.map(r => r.return);
-                const mean = annualReturns.reduce((a, b) => a + b, 0) / annualReturns.length;
-                const variance = annualReturns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / annualReturns.length;
+                const geoMean = geometricMean(annualReturns);
+                const arithMean = annualReturns.reduce((a, b) => a + b, 0) / annualReturns.length;
+                const variance = annualReturns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / annualReturns.length;
                 const stdDev = Math.sqrt(variance);
 
                 const stats = {
-                    mean: mean,
+                    mean: geoMean,
+                    arithmeticMean: arithMean,
                     stdDev: stdDev,
                     max: Math.max(...annualReturns),
                     min: Math.min(...annualReturns)
@@ -1438,7 +1447,11 @@
             const statsContainer = document.getElementById('stock-stats');
             statsContainer.innerHTML = `
                 <div class="stat-card">
-                    <div class="stat-label">Mean Annual Return</div>
+                    <div class="stat-label">Arithmetic Mean Annual Return</div>
+                    <div class="stat-value">${data.stats.arithmeticMean.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Geometric Mean Annual Return</div>
                     <div class="stat-value">${data.stats.mean.toFixed(2)}%</div>
                 </div>
                 <div class="stat-card">
@@ -1491,8 +1504,9 @@
         function displayStockSummaryStats(data, chartCanvas) {
             // Calculate stats ONLY from annualFilteredReturns to ensure we're using annual data
             const stockAnnualReturns = data.annualFilteredReturns.map(r => r.return);
-            const stockMean = stockAnnualReturns.reduce((a, b) => a + b, 0) / stockAnnualReturns.length;
-            const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockMean, 2), 0) / stockAnnualReturns.length;
+            const stockGeoMean = geometricMean(stockAnnualReturns);
+            const stockArithMean = stockAnnualReturns.reduce((a, b) => a + b, 0) / stockAnnualReturns.length;
+            const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockArithMean, 2), 0) / stockAnnualReturns.length;
             const stockStdDev = Math.sqrt(stockVariance);
             const stockMax = Math.max(...stockAnnualReturns);
             const stockMin = Math.min(...stockAnnualReturns);
@@ -1503,8 +1517,9 @@
 
             // Calculate S&P 500 stats from annual returns
             const sp500Returns = data.sp500AnnualReturns.map(r => r.return);
-            const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
-            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+            const sp500GeoMean = geometricMean(sp500Returns);
+            const sp500ArithMean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
+            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500ArithMean, 2), 0) / sp500Returns.length;
             const sp500StdDev = Math.sqrt(sp500Variance);
             const sp500Max = Math.max(...sp500Returns);
             const sp500Min = Math.min(...sp500Returns);
@@ -1517,7 +1532,8 @@
                         <div>
                             <strong style="color: #8C1515;">${data.ticker}:</strong>
                             <ul style="margin: 5px 0; padding-left: 20px;">
-                                <li>Mean Return: ${stockMean.toFixed(2)}%</li>
+                                <li>Arithmetic Mean Return: ${stockArithMean.toFixed(2)}%</li>
+                                <li>Geometric Mean Return: ${stockGeoMean.toFixed(2)}%</li>
                                 <li>Std Dev: ${stockStdDev.toFixed(2)}%</li>
                                 <li>Max Return: ${stockMax.toFixed(2)}%</li>
                                 <li>Min Return: ${stockMin.toFixed(2)}%</li>
@@ -1527,7 +1543,8 @@
                         <div>
                             <strong style="color: #2E2D29;">S&P 500:</strong>
                             <ul style="margin: 5px 0; padding-left: 20px;">
-                                <li>Mean Return: ${sp500Mean.toFixed(2)}%</li>
+                                <li>Arithmetic Mean Return: ${sp500ArithMean.toFixed(2)}%</li>
+                                <li>Geometric Mean Return: ${sp500GeoMean.toFixed(2)}%</li>
                                 <li>Std Dev: ${sp500StdDev.toFixed(2)}%</li>
                                 <li>Max Return: ${sp500Max.toFixed(2)}%</li>
                                 <li>Min Return: ${sp500Min.toFixed(2)}%</li>
@@ -1574,7 +1591,7 @@
                             <div style="font-size: 1.5em; margin-top: 5px;">${sp500Sharpe.toFixed(3)}</div>
                         </div>
                     </div>
-                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Sharpe Ratio = (Mean Return - Risk-Free Rate) / Standard Deviation. S&P 500 is calculated over the same time period as your selected stock for fair comparison.</em></p>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Sharpe Ratio = (Arithmetic Mean Return - Risk-Free Rate) / Standard Deviation. The Sharpe ratio uses the arithmetic mean, which is the standard approach in portfolio theory. S&P 500 is calculated over the same time period as your selected stock for fair comparison.</em></p>
                 `;
                 display.style.display = 'block';
                 button.textContent = 'Hide Sharpe Ratio';
@@ -2467,12 +2484,14 @@
 
                 // Calculate statistics
                 const returns = portfolioReturns.map(r => r.return);
-                const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-                const variance = returns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / returns.length;
+                const geoMean = geometricMean(returns);
+                const arithMean = returns.reduce((a, b) => a + b, 0) / returns.length;
+                const variance = returns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / returns.length;
                 const stdDev = Math.sqrt(variance);
 
                 const stats = {
-                    mean: mean,
+                    mean: geoMean,
+                    arithmeticMean: arithMean,
                     stdDev: stdDev,
                     max: Math.max(...returns),
                     min: Math.min(...returns)
@@ -2647,7 +2666,11 @@
             const statsContainer = document.getElementById('portfolio-stats');
             statsContainer.innerHTML = `
                 <div class="stat-card">
-                    <div class="stat-label">Mean Annual Return</div>
+                    <div class="stat-label">Arithmetic Mean Annual Return</div>
+                    <div class="stat-value">${data.stats.arithmeticMean.toFixed(2)}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Geometric Mean Annual Return</div>
                     <div class="stat-value">${data.stats.mean.toFixed(2)}%</div>
                 </div>
                 <div class="stat-card">
@@ -2699,8 +2722,9 @@
         function displayPortfolioSummaryStats(data, chartCanvas) {
             // Calculate portfolio stats from annual returns
             const portfolioReturns = data.annualReturns.map(r => r.return);
-            const portfolioMean = portfolioReturns.reduce((a, b) => a + b, 0) / portfolioReturns.length;
-            const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioMean, 2), 0) / portfolioReturns.length;
+            const portfolioGeoMean = geometricMean(portfolioReturns);
+            const portfolioArithMean = portfolioReturns.reduce((a, b) => a + b, 0) / portfolioReturns.length;
+            const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioArithMean, 2), 0) / portfolioReturns.length;
             const portfolioStdDev = Math.sqrt(portfolioVariance);
             const portfolioMax = Math.max(...portfolioReturns);
             const portfolioMin = Math.min(...portfolioReturns);
@@ -2711,8 +2735,9 @@
 
             // Calculate S&P 500 stats from annual returns
             const sp500Returns = data.sp500Returns.map(r => r.return);
-            const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
-            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+            const sp500GeoMean = geometricMean(sp500Returns);
+            const sp500ArithMean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
+            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500ArithMean, 2), 0) / sp500Returns.length;
             const sp500StdDev = Math.sqrt(sp500Variance);
             const sp500Max = Math.max(...sp500Returns);
             const sp500Min = Math.min(...sp500Returns);
@@ -2725,7 +2750,8 @@
                         <div>
                             <strong style="color: #8C1515;">Portfolio:</strong>
                             <ul style="margin: 5px 0; padding-left: 20px;">
-                                <li>Mean Return: ${portfolioMean.toFixed(2)}%</li>
+                                <li>Arithmetic Mean Return: ${portfolioArithMean.toFixed(2)}%</li>
+                                <li>Geometric Mean Return: ${portfolioGeoMean.toFixed(2)}%</li>
                                 <li>Std Dev: ${portfolioStdDev.toFixed(2)}%</li>
                                 <li>Max Return: ${portfolioMax.toFixed(2)}%</li>
                                 <li>Min Return: ${portfolioMin.toFixed(2)}%</li>
@@ -2735,7 +2761,8 @@
                         <div>
                             <strong style="color: #2E2D29;">S&P 500:</strong>
                             <ul style="margin: 5px 0; padding-left: 20px;">
-                                <li>Mean Return: ${sp500Mean.toFixed(2)}%</li>
+                                <li>Arithmetic Mean Return: ${sp500ArithMean.toFixed(2)}%</li>
+                                <li>Geometric Mean Return: ${sp500GeoMean.toFixed(2)}%</li>
                                 <li>Std Dev: ${sp500StdDev.toFixed(2)}%</li>
                                 <li>Max Return: ${sp500Max.toFixed(2)}%</li>
                                 <li>Min Return: ${sp500Min.toFixed(2)}%</li>
@@ -2783,7 +2810,7 @@
                             <div style="font-size: 1.5em; margin-top: 5px;">${sp500Sharpe.toFixed(3)}</div>
                         </div>
                     </div>
-                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Sharpe Ratio = (Mean Return - Risk-Free Rate) / Standard Deviation. Both calculated over ${actualStart}-${actualEnd} (years where all portfolio stocks have data).</em></p>
+                    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Sharpe Ratio = (Arithmetic Mean Return - Risk-Free Rate) / Standard Deviation. The Sharpe ratio uses the arithmetic mean, which is the standard approach in portfolio theory. Both calculated over ${actualStart}-${actualEnd} (years where all portfolio stocks have data).</em></p>
                 `;
                 display.style.display = 'block';
                 button.textContent = 'Hide Sharpe Ratio';
@@ -2859,11 +2886,12 @@
                         throw new Error(`No data available for ${ticker} from ${startDate}`);
                     }
 
-                    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-                    const variance = returns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / returns.length;
+                    const arithMean = returns.reduce((a, b) => a + b, 0) / returns.length;
+                    const geoMean = geometricMean(returns);
+                    const variance = returns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / returns.length;
                     const stdDev = Math.sqrt(variance);
 
-                    stockStats.push({ ticker, mean, stdDev });
+                    stockStats.push({ ticker, mean: arithMean, geoMean, stdDev });
                 }
 
                 drawRiskReturnScatter(stockStats, startDate);
@@ -2954,6 +2982,7 @@
                     y: y,
                     ticker: stock.ticker,
                     mean: stock.mean,
+                    geoMean: stock.geoMean,
                     stdDev: stock.stdDev,
                     radius: 8
                 });
@@ -2986,7 +3015,7 @@
             ctx.save();
             ctx.translate(20, canvas.height / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.fillText('Return (Mean Annual Return %)', 0, 0);
+            ctx.fillText('Return (Arithmetic Mean Annual Return %)', 0, 0);
             ctx.restore();
 
             // Add hover tooltip functionality
@@ -3010,7 +3039,8 @@
                     canvas.style.cursor = 'pointer';
                     tooltip.innerHTML = `
                         <strong>${hoveredPoint.ticker}</strong><br>
-                        Return: ${hoveredPoint.mean.toFixed(2)}%<br>
+                        Arithmetic Mean: ${hoveredPoint.mean.toFixed(2)}%<br>
+                        Geometric Mean: ${hoveredPoint.geoMean.toFixed(2)}%<br>
                         Risk (Std Dev): ${hoveredPoint.stdDev.toFixed(2)}%
                     `;
                     tooltip.style.left = (e.clientX + 10) + 'px';
@@ -3616,11 +3646,12 @@
             statsHTML += '<div><strong style="color: #8C1515;">S&P 500:</strong><ul style="margin: 5px 0; padding-left: 20px;">';
             sp500PeriodsArray.forEach(period => {
                 const data = rollingReturnsData[`period${period}`];
-                const avg = data.reduce((a, b) => a + b, 0) / data.length;
-                const variance = data.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / data.length;
+                const avg = geometricMean(data);
+                const arithAvg = data.reduce((a, b) => a + b, 0) / data.length;
+                const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / data.length;
                 const stdDev = Math.sqrt(variance);
                 const negativeYears = data.filter(val => val < 0).length;
-                statsHTML += `<li style="color: ${sp500Colors[period]};">${period}-year: Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
+                statsHTML += `<li style="color: ${sp500Colors[period]};">${period}-year: Arith Mean ${arithAvg.toFixed(2)}%, Geo Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
             });
             statsHTML += '</ul></div>';
 
@@ -3629,17 +3660,18 @@
                 statsHTML += `<div><strong style="color: #1e3a8a;">${additionalTicker}:</strong><ul style="margin: 5px 0; padding-left: 20px;">`;
                 additionalPeriodsArray.forEach(period => {
                     const data = additionalRollingReturns[`period${period}`];
-                    const avg = data.reduce((a, b) => a + b, 0) / data.length;
-                    const variance = data.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / data.length;
+                    const avg = geometricMean(data);
+                    const arithAvg = data.reduce((a, b) => a + b, 0) / data.length;
+                    const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / data.length;
                     const stdDev = Math.sqrt(variance);
                     const negativeYears = data.filter(val => val < 0).length;
-                    statsHTML += `<li style="color: ${additionalColors[period]};">${period}-year: Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
+                    statsHTML += `<li style="color: ${additionalColors[period]};">${period}-year: Arith Mean ${arithAvg.toFixed(2)}%, Geo Mean ${avg.toFixed(2)}%, Std Dev ${stdDev.toFixed(2)}%, Negative Years: ${negativeYears}</li>`;
                 });
                 statsHTML += '</ul></div>';
             }
 
             statsHTML += '</div>';
-            statsHTML += '<p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Note: These are price returns and do not include dividends for S&P 500</em></p>';
+            statsHTML += '<p style="margin: 10px 0 0 0; font-size: 12px; color: #666;"><em>Note: These are price returns and do not include dividends for S&P 500. Rolling returns use geometric means because they represent the actual compound growth rates investors experienced over multi-year periods.</em></p>';
             stats.innerHTML = statsHTML;
         }
 
