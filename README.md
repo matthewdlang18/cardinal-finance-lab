@@ -2,7 +2,7 @@
 
 Educational finance tools for Stanford's IFDM (Initiative for Financial Decision-Making).
 
-**Live Demo**: [View on GitHub Pages](https://yourusername.github.io/cardinal-finance-lab/)
+**Live Demo**: [View on GitHub Pages](https://matthewdlang18.github.io/cardinal-finance-lab/)
 
 ## Pages
 
@@ -129,7 +129,7 @@ Required source files:
 3. Set Source to "Deploy from a branch"
 4. Select branch: `main` (or `master`), folder: `/ (root)`
 5. Click Save
-6. Your site will be live at `https://yourusername.github.io/cardinal-finance-lab/`
+6. Your site will be live at `https://matthewdlang18.github.io/cardinal-finance-lab/`
 7. Update the live demo link in this README with your actual URL
 
 ### File Structure
