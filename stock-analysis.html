@@ -2876,6 +2876,9 @@
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Store point data for hover detection
+            canvas.pointData = [];
+
             // Find ranges
             const stdDevs = stockStats.map(s => s.stdDev);
             const means = stockStats.map(s => s.mean);
@@ -2931,6 +2934,16 @@
                 const x = padding + ((stock.stdDev - paddedMinStdDev) / fullStdDevRange) * chartWidth;
                 const y = padding + chartHeight - ((stock.mean - paddedMinMean) / fullMeanRange) * chartHeight;
 
+                // Store point data for hover detection
+                canvas.pointData.push({
+                    x: x,
+                    y: y,
+                    ticker: stock.ticker,
+                    mean: stock.mean,
+                    stdDev: stock.stdDev,
+                    radius: 8
+                });
+
                 // Draw dot
                 ctx.fillStyle = colors[index % colors.length];
                 ctx.beginPath();
@@ -2961,6 +2974,44 @@
             ctx.rotate(-Math.PI / 2);
             ctx.fillText('Return (Mean Annual Return %)', 0, 0);
             ctx.restore();
+
+            // Add hover tooltip functionality
+            canvas.onmousemove = function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Check if mouse is over any point
+                let hoveredPoint = null;
+                for (let point of canvas.pointData) {
+                    const distance = Math.sqrt(Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2));
+                    if (distance <= point.radius + 5) {
+                        hoveredPoint = point;
+                        break;
+                    }
+                }
+
+                const tooltip = document.getElementById('chart-tooltip');
+                if (hoveredPoint) {
+                    canvas.style.cursor = 'pointer';
+                    tooltip.innerHTML = `
+                        <strong>${hoveredPoint.ticker}</strong><br>
+                        Return: ${hoveredPoint.mean.toFixed(2)}%<br>
+                        Risk (Std Dev): ${hoveredPoint.stdDev.toFixed(2)}%
+                    `;
+                    tooltip.style.left = (e.clientX + 10) + 'px';
+                    tooltip.style.top = (e.clientY - 10) + 'px';
+                    tooltip.style.display = 'block';
+                } else {
+                    canvas.style.cursor = 'default';
+                    tooltip.style.display = 'none';
+                }
+            };
+
+            canvas.onmouseleave = function() {
+                document.getElementById('chart-tooltip').style.display = 'none';
+                canvas.style.cursor = 'default';
+            };
         }
 
         function resetRollingReturns() {
