@@ -3510,13 +3510,11 @@
             ctx.textAlign = 'left';
             ctx.fillText('Year', padding + chartWidth + 5, padding + chartHeight + 5);
 
-            // Y-axis label - rotated vertically along left side
-            ctx.save();
-            ctx.translate(20, padding + chartHeight / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.fillText('Annualized Return (%)', 0, 0);
-            ctx.restore();
+            // Y-axis label - at the top end of the y-axis, two rows
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Annualized', padding + 5, padding - 15);
+            ctx.fillText('Return (%)', padding + 5, padding - 2);
 
             // Legend below the chart
             let legendY = canvas.height - 10;
@@ -3583,7 +3581,8 @@
             canvas.height = 400;
 
             const padding = 60;
-            const chartWidth = canvas.width - padding * 2;
+            const rightPadding = 120; // Extra space for end-of-axis label
+            const chartWidth = canvas.width - padding - rightPadding;
             const chartHeight = canvas.height - padding * 2;
 
             ctx.fillStyle = 'white';
@@ -3785,11 +3784,12 @@
             }
             ctx.fillText(titleText, canvas.width / 2, padding - 30);
 
-            // X-axis label - at the end of the x-axis line
+            // X-axis label - at the end of the x-axis line, two rows
             ctx.fillStyle = '#2E2D29';
             ctx.font = '12px Arial';
             ctx.textAlign = 'left';
-            ctx.fillText('Annualized Return (%)', padding + chartWidth + 5, padding + chartHeight + 5);
+            ctx.fillText('Annualized', padding + chartWidth + 5, padding + chartHeight - 5);
+            ctx.fillText('Return (%)', padding + chartWidth + 5, padding + chartHeight + 12);
 
             // Y-axis label
             ctx.save();
