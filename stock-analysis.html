@@ -927,13 +927,18 @@
 
         <!-- Tab 5: TVM Calculator -->
         <div id="tvm-calculator" class="tab-content">
-        <div class="section">
-            <div style="position: relative; margin-bottom: 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <img src="pic2.webp" alt="Cardinal Calculator" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-                <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(140,21,21,0.85), rgba(140,21,21,0.3)); display: flex; align-items: center; padding-left: 30px;">
-                    <div style="color: white; font-size: 2em; font-weight: bold; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">Cardinal Calculator</div>
-                </div>
+
+        <!-- Hero banner spanning full width -->
+        <div style="position: relative; margin-bottom: 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <img src="pic2.webp" alt="Cardinal Calculator" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+            <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(140,21,21,0.85), rgba(140,21,21,0.3)); display: flex; align-items: center; padding-left: 30px;">
+                <div style="color: white; font-size: 2em; font-weight: bold; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">Cardinal Calculator</div>
             </div>
+        </div>
+
+        <!-- Two-column layout: calculator left, saved results right -->
+        <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start;">
+        <div class="section">
 
             <div class="info-box">
                 <strong>How to use:</strong> Select which variable to solve for, enter the known values, then click Calculate.
@@ -1015,21 +1020,19 @@
             </div>
         </div>
 
-        <!-- Saved Results Sidebar -->
-        <div class="section">
+        <!-- Saved Results Sidebar (right column) -->
+        <div class="section" style="position: sticky; top: 20px; max-height: 85vh; overflow-y: auto;">
             <div class="saved-results-header">
                 <h2>Saved Results</h2>
-                <p>Reference your previous calculations</p>
             </div>
             <div id="tvm-savedResultsList">
                 <div class="no-saved-results">
-                    <p>No saved results yet.<br>Calculate and save results to see them here.</p>
+                    <img src="pic1.webp" alt="Cardinal doing calculations" style="width: 140px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0.9;">
+                    <p style="font-style: italic;">No saved results yet.<br>Calculate and save to keep a record.</p>
                 </div>
             </div>
-            <div style="margin-top: 20px; text-align: center;">
-                <img src="pic1.webp" alt="Cardinal" style="width: 120px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            </div>
         </div>
+        </div><!-- end two-column grid -->
         </div>
     </div>
 
@@ -4160,7 +4163,8 @@
             if (tvmSavedResults.length === 0) {
                 container.innerHTML = `
                     <div class="no-saved-results">
-                        <p>No saved results yet.<br>Calculate and save results to see them here.</p>
+                        <img src="pic1.webp" alt="Cardinal doing calculations" style="width: 140px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0.9;">
+                        <p style="font-style: italic;">No saved results yet.<br>Calculate and save to keep a record.</p>
                     </div>
                 `;
                 return;
