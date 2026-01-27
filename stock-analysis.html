@@ -3898,6 +3898,31 @@
         let tvmSavedResults = JSON.parse(localStorage.getItem('tvmCalculatorResults')) || [];
         let tvmCurrentResult = null;
 
+        function safeSaveResults() {
+            const data = JSON.stringify(tvmSavedResults);
+            try {
+                localStorage.setItem('tvmCalculatorResults', data);
+            } catch (e) {
+                // Quota exceeded — clear unrelated keys first
+                const keep = 'tvmCalculatorResults';
+                Object.keys(localStorage).forEach(key => {
+                    if (key !== keep) localStorage.removeItem(key);
+                });
+                try {
+                    localStorage.setItem('tvmCalculatorResults', data);
+                } catch (e2) {
+                    // Still full — trim oldest results until it fits
+                    while (tvmSavedResults.length > 1) {
+                        tvmSavedResults.pop();
+                        try {
+                            localStorage.setItem('tvmCalculatorResults', JSON.stringify(tvmSavedResults));
+                            return;
+                        } catch (e3) { /* keep trimming */ }
+                    }
+                }
+            }
+        }
+
         // Update input states when solveFor changes
         document.addEventListener('DOMContentLoaded', function() {
             const solveForSelect = document.getElementById('tvm-solveFor');
@@ -4347,7 +4372,7 @@
             if (!tvmCurrentResult) return;
 
             tvmSavedResults.unshift(tvmCurrentResult);
-            localStorage.setItem('tvmCalculatorResults', JSON.stringify(tvmSavedResults));
+            safeSaveResults();
             tvmDisplaySavedResults();
 
             const saveBtn = document.getElementById('tvm-saveBtn');
@@ -4429,7 +4454,7 @@
         function tvmDeleteResult(index) {
             if (confirm('Delete this saved result?')) {
                 tvmSavedResults.splice(index, 1);
-                localStorage.setItem('tvmCalculatorResults', JSON.stringify(tvmSavedResults));
+                safeSaveResults();
                 tvmDisplaySavedResults();
             }
         }
@@ -4437,7 +4462,7 @@
         function tvmClearAllResults() {
             if (confirm('Are you sure you want to clear all saved results? This cannot be undone.')) {
                 tvmSavedResults = [];
-                localStorage.setItem('tvmCalculatorResults', JSON.stringify(tvmSavedResults));
+                safeSaveResults();
                 tvmDisplaySavedResults();
             }
         }
@@ -4693,7 +4718,7 @@
             if (!paCurrentResult) return;
 
             tvmSavedResults.unshift(paCurrentResult);
-            localStorage.setItem('tvmCalculatorResults', JSON.stringify(tvmSavedResults));
+            safeSaveResults();
             tvmDisplaySavedResults();
 
             const saveBtn = document.getElementById('pa-saveBtn');
