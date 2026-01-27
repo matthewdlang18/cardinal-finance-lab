@@ -1500,33 +1500,12 @@
                     throw new Error(`Ticker ${ticker} not found. Available tickers include S&P 500 stocks, SPX, TBILL, TBOND10, BAACORP.`);
                 }
 
-                // Use quarterly returns for histogram if available, otherwise annual
-                const returnsData = stock.quarterlyReturns || stock.annualReturns;
-                const isQuarterly = !!stock.quarterlyReturns;
+                // Use annual returns only (consistent with portfolio analysis)
+                const annualFilteredReturns = getAnnualReturns(stock, startYear, endYear);
 
-                // Filter returns by start and end date
-                const filteredReturns = returnsData.filter(r => {
-                    if (isQuarterly) {
-                        const year = parseInt(r.quarter.split('Q')[0]);
-                        return year >= startYear && year <= endYear;
-                    } else {
-                        return parseInt(r.year) >= startYear && parseInt(r.year) <= endYear;
-                    }
-                });
-
-                if (filteredReturns.length === 0) {
+                if (annualFilteredReturns.length === 0) {
                     throw new Error(`No data available for ${ticker} from ${startDate}`);
                 }
-
-                // ALWAYS calculate statistics from annual returns for accuracy
-                // (even when displaying quarterly data in histogram)
-                // Ensure we use ONLY annual returns, not quarterly
-                if (!stock.annualReturns || stock.annualReturns.length === 0) {
-                    throw new Error(`No annual returns data available for ${ticker}`);
-                }
-
-                // Get properly aggregated annual returns
-                const annualFilteredReturns = getAnnualReturns(stock, startYear, endYear);
                 console.log(`${ticker}: Got ${annualFilteredReturns.length} annual returns, first few:`, annualFilteredReturns.slice(0, 3));
                 const annualReturns = annualFilteredReturns.map(r => r.return);
                 const geoMean = geometricMean(annualReturns);
@@ -1561,10 +1540,9 @@
                     selectedEndYear: endYear,
                     actualStartYear: actualStartYear,
                     actualEndYear: actualEndYear,
-                    annualReturns: filteredReturns,
+                    annualReturns: annualFilteredReturns,
                     annualFilteredReturns: annualFilteredReturns,
                     sp500AnnualReturns: sp500AnnualReturns,
-                    isQuarterly: isQuarterly,
                     normalizedReturns: normalizedReturns,
                     sp500Normalized: sp500Normalized,
                     stats: stats
@@ -1699,7 +1677,7 @@
             drawHistogram('returns-histogram', data.annualReturns, `${data.ticker} Returns Distribution`);
 
             // Draw comparison chart with time axis
-            drawComparisonChartWithTime('returns-vs-sp500', data.annualReturns, data.ticker, data.isQuarterly, data.startDate);
+            drawComparisonChartWithTime('returns-vs-sp500', data.annualReturns, data.ticker, data.startDate);
 
             // Draw normalized price comparison
             const normalizedCanvas = document.getElementById('normalized-price-comparison');
@@ -1812,7 +1790,7 @@
             }
         }
 
-        function drawTimeSeriesHistogram(canvasId, returns, title, isQuarterly = false) {
+        function drawTimeSeriesHistogram(canvasId, returns, title) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
 
@@ -1893,7 +1871,7 @@
             returns.forEach((data, i) => {
                 if (i % labelInterval === 0 || i === returns.length - 1) {
                     const x = padding + (i / returns.length) * chartWidth;
-                    const label = isQuarterly ? data.quarter : data.year;
+                    const label = data.year;
                     ctx.save();
                     ctx.translate(x, padding + chartHeight + 15);
                     ctx.rotate(-Math.PI / 4);
@@ -1918,10 +1896,10 @@
             ctx.restore();
 
             // Make interactive
-            makeCanvasInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range);
+            makeCanvasInteractive(canvas, returns, padding, chartWidth, chartHeight, min, range);
         }
 
-        function makeCanvasInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range) {
+        function makeCanvasInteractive(canvas, returns, padding, chartWidth, chartHeight, min, range) {
             const tooltip = document.getElementById('chart-tooltip');
             const barWidth = chartWidth / returns.length;
 
@@ -1936,7 +1914,7 @@
                     const index = Math.floor(chartX / barWidth);
                     if (index >= 0 && index < returns.length) {
                         const data = returns[index];
-                        const label = isQuarterly ? data.quarter : data.year;
+                        const label = data.year;
 
                         // Calculate bar position
                         const barX = padding + (index / returns.length) * chartWidth;
@@ -2075,7 +2053,7 @@
             ctx.restore();
         }
 
-        function drawComparisonChartWithTime(canvasId, returns, ticker, isQuarterly, startDate) {
+        function drawComparisonChartWithTime(canvasId, returns, ticker, startDate) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
 
@@ -2150,13 +2128,7 @@
             returns.forEach((data, i) => {
                 if (i % labelInterval === 0 || i === returns.length - 1) {
                     const x = padding + (i / returns.length) * chartWidth;
-                    // Extract year - no shift needed
-                    let year;
-                    if (isQuarterly) {
-                        year = parseInt(data.quarter.split('Q')[0]);
-                    } else {
-                        year = parseInt(data.year);
-                    }
+                    const year = parseInt(data.year);
                     ctx.save();
                     ctx.translate(x, padding + chartHeight + 15);
                     ctx.rotate(-Math.PI / 4);
@@ -2181,10 +2153,10 @@
             ctx.restore();
 
             // Make interactive - REMOVED for simplicity
-            // makeComparisonChartInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range);
+            // makeComparisonChartInteractive(canvas, returns, padding, chartWidth, chartHeight, min, range);
         }
 
-        function makeComparisonChartInteractive(canvas, returns, isQuarterly, padding, chartWidth, chartHeight, min, range) {
+        function makeComparisonChartInteractive(canvas, returns, padding, chartWidth, chartHeight, min, range) {
             const tooltip = document.getElementById('chart-tooltip');
             const barWidth = Math.max(1, chartWidth / returns.length - 1);
 
@@ -2198,15 +2170,7 @@
                     const index = Math.floor((chartX / chartWidth) * returns.length);
                     if (index >= 0 && index < returns.length) {
                         const data = returns[index];
-                        // Shift year forward by 1 for display
-                        let label;
-                        if (isQuarterly) {
-                            const year = parseInt(data.quarter.split('Q')[0]) + 1;
-                            const quarter = data.quarter.split('Q')[1];
-                            label = `${year}Q${quarter}`;
-                        } else {
-                            label = (parseInt(data.year) + 1).toString();
-                        }
+                        const label = (parseInt(data.year) + 1).toString();
 
                         // Calculate bar position
                         const barX = padding + (index / returns.length) * chartWidth;
