@@ -3510,9 +3510,9 @@
             ctx.textAlign = 'left';
             ctx.fillText('Year', padding + chartWidth + 5, padding + chartHeight + 5);
 
-            // Y-axis label - at the top of the y-axis line
-            ctx.textAlign = 'right';
-            ctx.fillText('Annualized Return (%)', padding - 5, padding - 5);
+            // Y-axis label - at the top end of the y-axis line
+            ctx.textAlign = 'left';
+            ctx.fillText('Annualized Return (%)', padding + 5, padding - 5);
 
             // Legend below the chart
             let legendY = canvas.height - 10;
