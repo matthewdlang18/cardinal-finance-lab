@@ -615,6 +615,55 @@
             color: #444;
         }
 
+        .sci-btn {
+            padding: 8px 4px;
+            border: 1px solid #E4E1D8;
+            border-radius: 6px;
+            background: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #2E2D29;
+        }
+
+        .sci-btn:hover {
+            background: #f0f0f0;
+            border-color: #ccc;
+        }
+
+        .sci-btn:active {
+            background: #e0e0e0;
+            transform: scale(0.95);
+        }
+
+        .sci-fn {
+            background: #f4f4f4;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .sci-op {
+            background: #E4E1D8;
+            color: #2E2D29;
+            font-weight: 700;
+        }
+
+        .sci-clear {
+            background: #FFE5E5;
+            color: #8C1515;
+        }
+
+        .sci-equals {
+            background: #8C1515;
+            color: white;
+            font-size: 18px;
+        }
+
+        .sci-equals:hover {
+            background: #B1040E;
+        }
+
         .saved-results-header {
             margin-bottom: 20px;
             padding-bottom: 15px;
@@ -1129,7 +1178,8 @@
         </div>
 
         <!-- Saved Results Sidebar (right column) -->
-        <div class="section" style="position: sticky; top: 20px; max-height: 85vh; overflow-y: auto;">
+        <div style="position: sticky; top: 20px; display: flex; flex-direction: column; gap: 20px; max-height: 85vh; overflow-y: auto;">
+        <div class="section" style="margin-bottom: 0;">
             <div class="saved-results-header">
                 <h2>Saved Results</h2>
             </div>
@@ -1139,6 +1189,54 @@
                     <p style="font-style: italic;">No saved results yet.<br>Calculate and save to keep a record.</p>
                 </div>
             </div>
+        </div>
+
+        <!-- Scientific Calculator -->
+        <div class="section" style="margin-bottom: 0; padding: 15px;">
+            <div style="font-weight: 700; color: #8C1515; font-size: 14px; margin-bottom: 10px;">Scientific Calculator</div>
+            <input type="text" id="sci-display" readonly style="width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 18px; font-family: 'Courier New', monospace; text-align: right; border: 2px solid #E4E1D8; border-radius: 8px; background: #f8f8f8; margin-bottom: 8px; min-height: 44px;">
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;" id="sci-buttons">
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.sin(')">sin</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.cos(')">cos</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.tan(')">tan</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.log(')">ln</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.log10(')">log</button>
+
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.sqrt(')">√</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('**')">x<sup>y</sup></button>
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.PI')">π</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.E')">e</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('(')">(</button>
+
+                <button class="sci-btn sci-fn" onclick="sciInput('Math.abs(')">|x|</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('1/')">1/x</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('*100')">×100</button>
+                <button class="sci-btn sci-fn" onclick="sciInput('/100')">÷100</button>
+                <button class="sci-btn sci-fn" onclick="sciInput(')')">)</button>
+
+                <button class="sci-btn" onclick="sciInput('7')">7</button>
+                <button class="sci-btn" onclick="sciInput('8')">8</button>
+                <button class="sci-btn" onclick="sciInput('9')">9</button>
+                <button class="sci-btn sci-op" onclick="sciInput('/')">/</button>
+                <button class="sci-btn sci-clear" onclick="sciClear()">C</button>
+
+                <button class="sci-btn" onclick="sciInput('4')">4</button>
+                <button class="sci-btn" onclick="sciInput('5')">5</button>
+                <button class="sci-btn" onclick="sciInput('6')">6</button>
+                <button class="sci-btn sci-op" onclick="sciInput('*')">×</button>
+                <button class="sci-btn sci-clear" onclick="sciBackspace()">⌫</button>
+
+                <button class="sci-btn" onclick="sciInput('1')">1</button>
+                <button class="sci-btn" onclick="sciInput('2')">2</button>
+                <button class="sci-btn" onclick="sciInput('3')">3</button>
+                <button class="sci-btn sci-op" onclick="sciInput('-')">−</button>
+                <button class="sci-btn sci-equals" onclick="sciEval()" style="grid-row: span 2;">=</button>
+
+                <button class="sci-btn" onclick="sciInput('0')" style="grid-column: span 2;">0</button>
+                <button class="sci-btn" onclick="sciInput('.')">.</button>
+                <button class="sci-btn sci-op" onclick="sciInput('+')">+</button>
+            </div>
+        </div>
         </div>
         </div><!-- end two-column grid -->
         </div>
@@ -4366,6 +4464,54 @@
             document.getElementById('tvm-errorMessage').classList.remove('show');
             document.getElementById('tvm-saveBtn').style.display = 'none';
             tvmCurrentResult = null;
+        }
+
+        // ============================================
+        // SCIENTIFIC CALCULATOR
+        // ============================================
+
+        let sciExpression = '';
+
+        function sciInput(val) {
+            sciExpression += val;
+            document.getElementById('sci-display').value = sciExpression;
+        }
+
+        function sciClear() {
+            sciExpression = '';
+            document.getElementById('sci-display').value = '';
+        }
+
+        function sciBackspace() {
+            // Remove last token intelligently (e.g. "Math.sin(" as one unit)
+            const fns = ['Math.sin(', 'Math.cos(', 'Math.tan(', 'Math.log(', 'Math.log10(', 'Math.sqrt(', 'Math.abs(', 'Math.PI', 'Math.E', '**', '*100', '/100', '1/'];
+            for (const fn of fns) {
+                if (sciExpression.endsWith(fn)) {
+                    sciExpression = sciExpression.slice(0, -fn.length);
+                    document.getElementById('sci-display').value = sciExpression;
+                    return;
+                }
+            }
+            sciExpression = sciExpression.slice(0, -1);
+            document.getElementById('sci-display').value = sciExpression;
+        }
+
+        function sciEval() {
+            try {
+                // Only allow safe math expressions
+                const sanitized = sciExpression.replace(/[^0-9+\-*/().eE,Math.sincotaglqrbpPIE\s]/g, '');
+                const result = Function('"use strict"; return (' + sciExpression + ')')();
+                if (typeof result === 'number' && isFinite(result)) {
+                    document.getElementById('sci-display').value = result;
+                    sciExpression = String(result);
+                } else {
+                    document.getElementById('sci-display').value = 'Error';
+                    sciExpression = '';
+                }
+            } catch (e) {
+                document.getElementById('sci-display').value = 'Error';
+                sciExpression = '';
+            }
         }
 
         // ============================================
