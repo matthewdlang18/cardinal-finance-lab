@@ -3785,10 +3785,11 @@
             }
             ctx.fillText(titleText, canvas.width / 2, padding - 30);
 
-            // X-axis label
+            // X-axis label - at the end of the x-axis line
             ctx.fillStyle = '#2E2D29';
-            ctx.font = '14px Arial';
-            ctx.fillText('Annualized Return (%)', canvas.width / 2, canvas.height - 35);
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Annualized Return (%)', padding + chartWidth + 5, padding + chartHeight + 5);
 
             // Y-axis label
             ctx.save();
