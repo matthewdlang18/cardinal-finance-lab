@@ -574,6 +574,47 @@
             padding: 16px;
         }
 
+        .calc-mode-toggle {
+            display: flex;
+            background: #E4E1D8;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .calc-mode-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: transparent;
+            color: #5F574F;
+        }
+
+        .calc-mode-btn.active {
+            background: #8C1515;
+            color: white;
+            box-shadow: 0 2px 8px rgba(140, 21, 21, 0.3);
+        }
+
+        .calc-mode-btn:not(.active):hover {
+            background: #D4D1C6;
+        }
+
+        .pa-formula-desc {
+            background: #f8f8f8;
+            border-left: 4px solid #8C1515;
+            padding: 12px 16px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            color: #444;
+        }
+
         .saved-results-header {
             margin-bottom: 20px;
             padding-bottom: 15px;
@@ -940,6 +981,14 @@
         <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start;">
         <div class="section">
 
+            <!-- Calculator Mode Toggle -->
+            <div class="calc-mode-toggle">
+                <button class="calc-mode-btn active" id="mode-tvm" onclick="switchCalculatorMode('tvm')">TVM Calculator</button>
+                <button class="calc-mode-btn" id="mode-pa" onclick="switchCalculatorMode('pa')">Perpetuity & Annuity</button>
+            </div>
+
+            <!-- ===== TVM FORM ===== -->
+            <div id="tvm-form">
             <div class="info-box">
                 <strong>How to use:</strong> Select which variable to solve for, enter the known values, then click Calculate.
             </div>
@@ -1018,6 +1067,65 @@
                 <div class="result-value" id="tvm-resultValue">$0.00</div>
                 <div class="result-details" id="tvm-resultDetails"></div>
             </div>
+            </div><!-- end tvm-form -->
+
+            <!-- ===== PERPETUITY & ANNUITY FORM ===== -->
+            <div id="pa-form" style="display: none;">
+            <div class="info-box">
+                <strong>How to use:</strong> Select a formula type, enter the known values, then click Calculate. All rates are annual.
+            </div>
+
+            <div class="solve-for-section">
+                <label for="pa-formulaType">Formula Type</label>
+                <select id="pa-formulaType" onchange="paUpdateFields()">
+                    <option value="">Select formula type</option>
+                    <option value="perpetuity">Perpetuity (PV)</option>
+                    <option value="growing-perpetuity">Growing Perpetuity (PV)</option>
+                    <option value="annuity">Annuity (PV)</option>
+                    <option value="growing-annuity">Growing Annuity (PV)</option>
+                </select>
+            </div>
+
+            <div id="pa-formula-desc" class="pa-formula-desc" style="display: none;"></div>
+
+            <div class="grid-inputs" style="margin-top: 20px;">
+                <div class="input-group">
+                    <label for="pa-PMT">Payment (PMT) <span class="label-description">Cash flow per period</span></label>
+                    <input type="number" id="pa-PMT" step="0.01" placeholder="Enter amount">
+                </div>
+
+                <div class="input-group">
+                    <label for="pa-rate">Discount Rate (r) <span class="label-description">Annual rate (e.g., 8 for 8%)</span></label>
+                    <input type="number" id="pa-rate" step="0.01" placeholder="e.g., 8 for 8%">
+                </div>
+
+                <div class="input-group" id="pa-growth-group" style="display: none;">
+                    <label for="pa-growth">Growth Rate (g) <span class="label-description">Annual growth (e.g., 3 for 3%)</span></label>
+                    <input type="number" id="pa-growth" step="0.01" placeholder="e.g., 3 for 3%">
+                </div>
+
+                <div class="input-group" id="pa-n-group" style="display: none;">
+                    <label for="pa-n">Number of Periods (n) <span class="label-description">Years</span></label>
+                    <input type="number" id="pa-n" step="1" placeholder="Enter number of years">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="calculate-btn" onclick="paCalculate()">Calculate</button>
+                <button class="save-btn" onclick="paSaveResult()" id="pa-saveBtn" style="display:none;">Save Result</button>
+                <button class="reset-btn" onclick="paResetForm()">Reset</button>
+            </div>
+
+            <div class="error-message" id="pa-errorMessage"></div>
+
+            <div class="result-container" id="pa-resultContainer">
+                <div class="result-header">
+                    <div class="result-title" id="pa-resultTitle">Result</div>
+                </div>
+                <div class="result-value" id="pa-resultValue">$0.00</div>
+                <div class="result-details" id="pa-resultDetails"></div>
+            </div>
+            </div><!-- end pa-form -->
         </div>
 
         <!-- Saved Results Sidebar (right column) -->
@@ -4185,22 +4293,33 @@
                     valueDisplay = sign + '$' + Math.abs(result.value).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 }
 
-                const frequencyNames = {1: 'Annual', 2: 'Semi-Annual', 4: 'Quarterly', 12: 'Monthly', 52: 'Weekly', 365: 'Daily'};
+                let detailsHTML;
+                if (result.mode === 'pa') {
+                    detailsHTML = `
+                        ${result.inputs.PMT !== null ? `<div><strong>PMT:</strong> $${result.inputs.PMT.toLocaleString()}</div>` : ''}
+                        <div><strong>Rate (r):</strong> ${result.inputs.rate}%</div>
+                        ${result.inputs.growth !== null ? `<div><strong>Growth (g):</strong> ${result.inputs.growth}%</div>` : ''}
+                        ${result.inputs.n !== null ? `<div><strong>Periods:</strong> ${result.inputs.n}</div>` : ''}
+                    `;
+                } else {
+                    const frequencyNames = {1: 'Annual', 2: 'Semi-Annual', 4: 'Quarterly', 12: 'Monthly', 52: 'Weekly', 365: 'Daily'};
+                    detailsHTML = `
+                        ${result.inputs.PV !== null ? `<div><strong>PV:</strong> $${result.inputs.PV.toLocaleString()}</div>` : ''}
+                        ${result.inputs.FV !== null ? `<div><strong>FV:</strong> $${result.inputs.FV.toLocaleString()}</div>` : ''}
+                        ${result.inputs.PMT !== null ? `<div><strong>PMT:</strong> $${result.inputs.PMT.toLocaleString()}</div>` : ''}
+                        ${result.inputs.annualRate !== null ? `<div><strong>Rate:</strong> ${result.inputs.annualRate}% (${frequencyNames[result.inputs.frequency]})</div>` : ''}
+                        ${result.inputs.n !== null ? `<div><strong>Periods:</strong> ${result.inputs.n}</div>` : ''}
+                        <div><strong>Type:</strong> ${result.inputs.paymentType === 'end' ? 'Ordinary Annuity' : 'Annuity Due'}</div>
+                    `;
+                }
 
                 html += `
                     <div class="saved-result-card">
                         <button class="delete-result-btn" onclick="tvmDeleteResult(${index})" title="Delete this result">×</button>
-                        <div class="saved-result-timestamp">${formattedDate}</div>
+                        <div class="saved-result-timestamp">${formattedDate}${result.mode === 'pa' ? ' <span style="background:#8C1515;color:white;padding:1px 6px;border-radius:4px;font-size:10px;">P&A</span>' : ''}</div>
                         <div class="saved-result-variable">${result.variableName}</div>
                         <div class="saved-result-value">${valueDisplay}</div>
-                        <div class="saved-result-details">
-                            ${result.inputs.PV !== null ? `<div><strong>PV:</strong> $${result.inputs.PV.toLocaleString()}</div>` : ''}
-                            ${result.inputs.FV !== null ? `<div><strong>FV:</strong> $${result.inputs.FV.toLocaleString()}</div>` : ''}
-                            ${result.inputs.PMT !== null ? `<div><strong>PMT:</strong> $${result.inputs.PMT.toLocaleString()}</div>` : ''}
-                            ${result.inputs.annualRate !== null ? `<div><strong>Rate:</strong> ${result.inputs.annualRate}% (${frequencyNames[result.inputs.frequency]})</div>` : ''}
-                            ${result.inputs.n !== null ? `<div><strong>Periods:</strong> ${result.inputs.n}</div>` : ''}
-                            <div><strong>Type:</strong> ${result.inputs.paymentType === 'end' ? 'Ordinary Annuity' : 'Annuity Due'}</div>
-                        </div>
+                        <div class="saved-result-details">${detailsHTML}</div>
                     </div>
                 `;
             });
@@ -4247,6 +4366,214 @@
             document.getElementById('tvm-errorMessage').classList.remove('show');
             document.getElementById('tvm-saveBtn').style.display = 'none';
             tvmCurrentResult = null;
+        }
+
+        // ============================================
+        // CALCULATOR MODE TOGGLE
+        // ============================================
+
+        function switchCalculatorMode(mode) {
+            document.getElementById('tvm-form').style.display = mode === 'tvm' ? 'block' : 'none';
+            document.getElementById('pa-form').style.display = mode === 'pa' ? 'block' : 'none';
+            document.getElementById('mode-tvm').classList.toggle('active', mode === 'tvm');
+            document.getElementById('mode-pa').classList.toggle('active', mode === 'pa');
+        }
+
+        // ============================================
+        // PERPETUITY & ANNUITY FUNCTIONS
+        // ============================================
+
+        let paCurrentResult = null;
+
+        const paFormulaDescriptions = {
+            'perpetuity': '<strong>Perpetuity:</strong> A stream of equal payments that continues forever.<br>PV = PMT / r',
+            'growing-perpetuity': '<strong>Growing Perpetuity:</strong> A stream of payments that grows at rate g forever. Requires r > g.<br>PV = PMT / (r - g)',
+            'annuity': '<strong>Annuity:</strong> A stream of equal payments for n periods.<br>PV = PMT &times; [1 - (1+r)<sup>-n</sup>] / r',
+            'growing-annuity': '<strong>Growing Annuity:</strong> A stream of payments growing at rate g for n periods. Requires r &ne; g.<br>PV = PMT &times; [1 - ((1+g)/(1+r))<sup>n</sup>] / (r - g)'
+        };
+
+        function paUpdateFields() {
+            const type = document.getElementById('pa-formulaType').value;
+            const growthGroup = document.getElementById('pa-growth-group');
+            const nGroup = document.getElementById('pa-n-group');
+            const descDiv = document.getElementById('pa-formula-desc');
+
+            // Show/hide growth rate
+            const needsGrowth = type === 'growing-perpetuity' || type === 'growing-annuity';
+            growthGroup.style.display = needsGrowth ? 'block' : 'none';
+            if (!needsGrowth) document.getElementById('pa-growth').value = '';
+
+            // Show/hide n
+            const needsN = type === 'annuity' || type === 'growing-annuity';
+            nGroup.style.display = needsN ? 'block' : 'none';
+            if (!needsN) document.getElementById('pa-n').value = '';
+
+            // Show formula description
+            if (type && paFormulaDescriptions[type]) {
+                descDiv.innerHTML = paFormulaDescriptions[type];
+                descDiv.style.display = 'block';
+            } else {
+                descDiv.style.display = 'none';
+            }
+        }
+
+        function paShowError(msg) {
+            const el = document.getElementById('pa-errorMessage');
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function paCalculate() {
+            const formulaType = document.getElementById('pa-formulaType').value;
+            if (!formulaType) {
+                paShowError('Please select a formula type');
+                return;
+            }
+
+            const PMT = parseFloat(document.getElementById('pa-PMT').value);
+            const rate = parseFloat(document.getElementById('pa-rate').value);
+            const growth = parseFloat(document.getElementById('pa-growth').value) || 0;
+            const n = parseFloat(document.getElementById('pa-n').value) || null;
+
+            if (isNaN(PMT) || isNaN(rate)) {
+                paShowError('Please enter Payment and Discount Rate');
+                return;
+            }
+
+            const r = rate / 100;
+            const g = growth / 100;
+
+            let result, generalFormula, pluggedFormula, formulaName;
+
+            try {
+                switch (formulaType) {
+                    case 'perpetuity':
+                        if (r <= 0) throw new Error('Discount rate must be greater than 0');
+                        result = PMT / r;
+                        formulaName = 'Perpetuity PV';
+                        generalFormula = `PV = <div class="fraction"><span class="numerator">PMT</span><span class="denominator">r</span></div>`;
+                        pluggedFormula = `PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        break;
+
+                    case 'growing-perpetuity':
+                        if (r <= g) throw new Error('Discount rate (r) must be greater than growth rate (g)');
+                        result = PMT / (r - g);
+                        formulaName = 'Growing Perpetuity PV';
+                        generalFormula = `PV = <div class="fraction"><span class="numerator">PMT</span><span class="denominator">r - g</span></div>`;
+                        pluggedFormula = `PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${r.toFixed(4)} - ${g.toFixed(4)}</span></div> = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${(r - g).toFixed(4)}</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        break;
+
+                    case 'annuity':
+                        if (n === null || n <= 0) throw new Error('Please enter a positive number of periods');
+                        if (r <= 0) throw new Error('Discount rate must be greater than 0');
+                        result = PMT * (1 - Math.pow(1 + r, -n)) / r;
+                        formulaName = 'Annuity PV';
+                        generalFormula = `PV = PMT × <div class="fraction"><span class="numerator">1 - (1+r)<sup>-n</sup></span><span class="denominator">r</span></div>`;
+                        pluggedFormula = `PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - (1+${r.toFixed(4)})<sup>-${n}</sup></span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ${Math.pow(1 + r, -n).toFixed(6)}</span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × ${((1 - Math.pow(1 + r, -n)) / r).toFixed(6)}<br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        break;
+
+                    case 'growing-annuity':
+                        if (n === null || n <= 0) throw new Error('Please enter a positive number of periods');
+                        if (Math.abs(r - g) < 1e-10) {
+                            // Special case: r === g
+                            result = PMT * n / (1 + r);
+                            formulaName = 'Growing Annuity PV';
+                            generalFormula = `PV = <div class="fraction"><span class="numerator">PMT × n</span><span class="denominator">1 + r</span></div> <span style="font-size:12px;color:#666;">(when r = g)</span>`;
+                            pluggedFormula = `Since r = g, special formula applies:<br><br>PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()} × ${n}</span><span class="denominator">1 + ${r.toFixed(4)}</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        } else {
+                            const ratio = Math.pow((1 + g) / (1 + r), n);
+                            result = PMT * (1 - ratio) / (r - g);
+                            formulaName = 'Growing Annuity PV';
+                            generalFormula = `PV = PMT × <div class="fraction"><span class="numerator">1 - ((1+g)/(1+r))<sup>n</sup></span><span class="denominator">r - g</span></div>`;
+                            pluggedFormula = `PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ((1+${g.toFixed(4)})/(1+${r.toFixed(4)}))<sup>${n}</sup></span><span class="denominator">${r.toFixed(4)} - ${g.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ${ratio.toFixed(6)}</span><span class="denominator">${(r - g).toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × ${((1 - ratio) / (r - g)).toFixed(6)}<br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        }
+                        break;
+                }
+
+                paDisplayResult(formulaName, result, generalFormula, pluggedFormula, formulaType, PMT, rate, growth, n);
+            } catch (error) {
+                paShowError(error.message);
+            }
+        }
+
+        function paDisplayResult(formulaName, value, generalFormula, pluggedFormula, formulaType, PMT, rate, growth, n) {
+            const resultContainer = document.getElementById('pa-resultContainer');
+            const resultTitle = document.getElementById('pa-resultTitle');
+            const resultValue = document.getElementById('pa-resultValue');
+            const resultDetails = document.getElementById('pa-resultDetails');
+            const errorMessage = document.getElementById('pa-errorMessage');
+            const saveBtn = document.getElementById('pa-saveBtn');
+
+            errorMessage.classList.remove('show');
+            resultTitle.textContent = formulaName;
+
+            const sign = value < 0 ? '-' : '';
+            resultValue.textContent = sign + '$' + Math.abs(value).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            paCurrentResult = {
+                mode: 'pa',
+                variable: 'PV',
+                value: value,
+                variableName: formulaName,
+                inputs: {
+                    PMT: PMT,
+                    rate: rate,
+                    growth: growth || null,
+                    n: n,
+                    formulaType: formulaType
+                },
+                timestamp: new Date().toISOString()
+            };
+
+            const formulaHTML = `
+                <div class="formula-section">
+                    <div class="formula-step">
+                        <div class="formula-label">General Formula</div>
+                        <div class="math-formula">${generalFormula}</div>
+                    </div>
+                    <div class="formula-step">
+                        <div class="formula-label">Solution</div>
+                        <div class="math-formula">${pluggedFormula}</div>
+                    </div>
+                </div>
+            `;
+
+            resultDetails.innerHTML = formulaHTML;
+            resultContainer.classList.add('show');
+            saveBtn.style.display = 'inline-block';
+        }
+
+        function paSaveResult() {
+            if (!paCurrentResult) return;
+
+            tvmSavedResults.unshift(paCurrentResult);
+            localStorage.setItem('tvmCalculatorResults', JSON.stringify(tvmSavedResults));
+            tvmDisplaySavedResults();
+
+            const saveBtn = document.getElementById('pa-saveBtn');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saved!';
+            saveBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.style.background = '';
+            }, 2000);
+        }
+
+        function paResetForm() {
+            document.getElementById('pa-formulaType').value = '';
+            document.getElementById('pa-PMT').value = '';
+            document.getElementById('pa-rate').value = '';
+            document.getElementById('pa-growth').value = '';
+            document.getElementById('pa-n').value = '';
+            document.getElementById('pa-growth-group').style.display = 'none';
+            document.getElementById('pa-n-group').style.display = 'none';
+            document.getElementById('pa-formula-desc').style.display = 'none';
+            document.getElementById('pa-resultContainer').classList.remove('show');
+            document.getElementById('pa-errorMessage').classList.remove('show');
+            document.getElementById('pa-saveBtn').style.display = 'none';
+            paCurrentResult = null;
         }
 
     </script>
