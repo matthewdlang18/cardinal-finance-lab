@@ -256,15 +256,15 @@
             position: fixed;
             background: rgba(46, 45, 41, 0.95);
             color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
             font-size: 13px;
+            line-height: 1.4;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.15s;
             z-index: 1000;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            transform: translate(-50%, 0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             white-space: nowrap;
         }
 
@@ -1790,6 +1790,60 @@
             }
         }
 
+        // Shared tooltip helpers — position tooltip near cursor
+        function showTooltip(e, html) {
+            const tooltip = document.getElementById('chart-tooltip');
+            tooltip.innerHTML = html;
+            tooltip.classList.add('show');
+            // Position 12px right and 12px above cursor
+            const tx = e.clientX + 12;
+            const ty = e.clientY - 12;
+            // Keep tooltip on screen
+            tooltip.style.left = tx + 'px';
+            tooltip.style.top = ty + 'px';
+            // After rendering, check if it overflows the viewport
+            requestAnimationFrame(() => {
+                const rect = tooltip.getBoundingClientRect();
+                let adjustedX = tx;
+                let adjustedY = ty;
+                if (rect.right > window.innerWidth - 8) {
+                    adjustedX = e.clientX - rect.width - 12;
+                }
+                if (rect.top < 8) {
+                    adjustedY = e.clientY + 20;
+                }
+                tooltip.style.left = adjustedX + 'px';
+                tooltip.style.top = adjustedY + 'px';
+            });
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('chart-tooltip');
+            tooltip.classList.remove('show');
+        }
+
+        // Generic canvas hover handler — attaches mousemove/mouseleave to a canvas
+        // hitTest(mouseX, mouseY) should return {html: '...'} or null
+        function addCanvasTooltip(canvas, hitTest) {
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const hit = hitTest(mouseX, mouseY);
+                if (hit) {
+                    showTooltip(e, hit.html);
+                    canvas.style.cursor = 'pointer';
+                } else {
+                    hideTooltip();
+                    canvas.style.cursor = 'default';
+                }
+            });
+            canvas.addEventListener('mouseleave', () => {
+                hideTooltip();
+                canvas.style.cursor = 'default';
+            });
+        }
+
         function drawTimeSeriesHistogram(canvasId, returns, title) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
@@ -1900,48 +1954,17 @@
         }
 
         function makeCanvasInteractive(canvas, returns, padding, chartWidth, chartHeight, min, range) {
-            const tooltip = document.getElementById('chart-tooltip');
             const barWidth = chartWidth / returns.length;
-
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                // Check if hovering over a bar
-                const chartX = x - padding;
+            addCanvasTooltip(canvas, (mouseX, mouseY) => {
+                const chartX = mouseX - padding;
                 if (chartX >= 0 && chartX <= chartWidth) {
                     const index = Math.floor(chartX / barWidth);
                     if (index >= 0 && index < returns.length) {
                         const data = returns[index];
-                        const label = data.year;
-
-                        // Calculate bar position
-                        const barX = padding + (index / returns.length) * chartWidth;
-                        const barHeight = Math.abs(data.return / range * chartHeight * 0.8);
-                        const baseY = padding + chartHeight / 2;
-                        const barY = data.return >= 0 ? baseY - barHeight : baseY;
-
-                        // Position tooltip at top of bar
-                        const tooltipX = rect.left + barX + barWidth / 2;
-                        const tooltipY = rect.top + barY - 10;
-
-                        tooltip.innerHTML = `<strong>${label}</strong><br/>Return: ${data.return.toFixed(2)}%`;
-                        tooltip.style.left = tooltipX + 'px';
-                        tooltip.style.top = tooltipY + 'px';
-                        tooltip.classList.add('show');
-                        canvas.style.cursor = 'pointer';
-                        return;
+                        return { html: `<strong>${data.year}</strong><br>Return: ${data.return.toFixed(2)}%` };
                     }
                 }
-
-                tooltip.classList.remove('show');
-                canvas.style.cursor = 'default';
-            });
-
-            canvas.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('show');
-                canvas.style.cursor = 'default';
+                return null;
             });
         }
 
@@ -2051,6 +2074,21 @@
             ctx.rotate(-Math.PI / 2);
             ctx.fillText('Frequency', 0, 0);
             ctx.restore();
+
+            // Tooltip
+            addCanvasTooltip(canvas, (mouseX, mouseY) => {
+                const chartX = mouseX - padding;
+                const chartY = mouseY - padding;
+                if (chartX >= 0 && chartX <= chartWidth && chartY >= 0 && chartY <= chartHeight) {
+                    const binIndex = Math.floor((chartX / chartWidth) * numBins);
+                    if (binIndex >= 0 && binIndex < numBins && bins[binIndex] > 0) {
+                        const binStart = centeredMin + binIndex * binWidth;
+                        const binEnd = binStart + binWidth;
+                        return { html: `<strong>${binStart.toFixed(1)}% to ${binEnd.toFixed(1)}%</strong><br>Count: ${bins[binIndex]}` };
+                    }
+                }
+                return null;
+            });
         }
 
         function drawComparisonChartWithTime(canvasId, returns, ticker, startDate) {
@@ -2152,52 +2190,17 @@
             ctx.fillText('Annualized Return (%)', 0, 0);
             ctx.restore();
 
-            // Make interactive - REMOVED for simplicity
-            // makeComparisonChartInteractive(canvas, returns, padding, chartWidth, chartHeight, min, range);
-        }
-
-        function makeComparisonChartInteractive(canvas, returns, padding, chartWidth, chartHeight, min, range) {
-            const tooltip = document.getElementById('chart-tooltip');
-            const barWidth = Math.max(1, chartWidth / returns.length - 1);
-
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const chartX = x - padding;
+            // Tooltip
+            addCanvasTooltip(canvas, (mouseX, mouseY) => {
+                const chartX = mouseX - padding;
                 if (chartX >= 0 && chartX <= chartWidth) {
                     const index = Math.floor((chartX / chartWidth) * returns.length);
                     if (index >= 0 && index < returns.length) {
                         const data = returns[index];
-                        const label = (parseInt(data.year) + 1).toString();
-
-                        // Calculate bar position
-                        const barX = padding + (index / returns.length) * chartWidth;
-                        const barHeight = Math.abs(data.return / range * chartHeight * 0.8);
-                        const baseY = padding + chartHeight / 2;
-                        const barY = data.return >= 0 ? baseY - barHeight : baseY;
-
-                        // Position tooltip at top of bar
-                        const tooltipX = rect.left + barX + barWidth / 2;
-                        const tooltipY = rect.top + barY - 10;
-
-                        tooltip.innerHTML = `<strong>${label}</strong><br/>Return: ${data.return.toFixed(2)}%`;
-                        tooltip.style.left = tooltipX + 'px';
-                        tooltip.style.top = tooltipY + 'px';
-                        tooltip.classList.add('show');
-                        canvas.style.cursor = 'pointer';
-                        return;
+                        return { html: `<strong>${data.year}</strong><br>Return: ${data.return.toFixed(2)}%` };
                     }
                 }
-
-                tooltip.classList.remove('show');
-                canvas.style.cursor = 'default';
-            });
-
-            canvas.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('show');
-                canvas.style.cursor = 'default';
+                return null;
             });
         }
 
@@ -2332,51 +2335,17 @@
             ctx.setLineDash([]);
             ctx.fillText('S&P 500', canvas.width - 145, 45);
 
-            // Make interactive - REMOVED for simplicity
-            // makeNormalizedChartInteractive(canvas, stockValues, sp500Values, annualReturns, ticker, padding, chartWidth, chartHeight, minValue, range);
-        }
-
-        function makeNormalizedChartInteractive(canvas, stockValues, sp500Values, annualReturns, ticker, padding, chartWidth, chartHeight, minValue, range) {
-            const tooltip = document.getElementById('chart-tooltip');
-
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const chartX = x - padding;
+            // Tooltip
+            addCanvasTooltip(canvas, (mouseX, mouseY) => {
+                const chartX = mouseX - padding;
                 if (chartX >= 0 && chartX <= chartWidth) {
-                    // Find closest data point
                     const index = Math.round((chartX / chartWidth) * (stockValues.length - 1));
                     if (index >= 0 && index < stockValues.length && index < annualReturns.length) {
-                        const year = parseInt(annualReturns[index].year) + 1;
-                        const stockValue = stockValues[index];
-                        const sp500Value = sp500Values[index];
-
-                        // Calculate the actual Y position of the data point on the line
-                        const dataX = padding + (index / (stockValues.length - 1)) * chartWidth;
-                        const dataY = padding + chartHeight - ((stockValue - minValue) / range) * chartHeight;
-
-                        // Position tooltip at the data point on the line
-                        const tooltipX = rect.left + dataX + 10;
-                        const tooltipY = rect.top + dataY - 50; // Above the point
-
-                        tooltip.innerHTML = `<strong>${year}</strong><br/>${ticker}: $${stockValue.toFixed(0)}<br/>S&P 500: $${sp500Value.toFixed(0)}`;
-                        tooltip.style.left = tooltipX + 'px';
-                        tooltip.style.top = tooltipY + 'px';
-                        tooltip.classList.add('show');
-                        canvas.style.cursor = 'crosshair';
-                        return;
+                        const year = annualReturns[index].year;
+                        return { html: `<strong>${year}</strong><br>${ticker}: $${stockValues[index].toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}<br>S&P 500: $${sp500Values[index].toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}` };
                     }
                 }
-
-                tooltip.classList.remove('show');
-                canvas.style.cursor = 'default';
-            });
-
-            canvas.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('show');
-                canvas.style.cursor = 'default';
+                return null;
             });
         }
 
@@ -2477,8 +2446,18 @@
             ctx.fillText('Annual Return (%)', 0, 0);
             ctx.restore();
 
-            // Make interactive - REMOVED for simplicity
-            // makeComparisonChartInteractive(canvas, returns, false, padding, chartWidth, chartHeight, min, range);
+            // Tooltip
+            addCanvasTooltip(canvas, (mouseX, mouseY) => {
+                const chartX = mouseX - padding;
+                if (chartX >= 0 && chartX <= chartWidth) {
+                    const index = Math.floor((chartX / chartWidth) * returns.length);
+                    if (index >= 0 && index < returns.length) {
+                        const data = returns[index];
+                        return { html: `<strong>${data.year}</strong><br>Return: ${data.return.toFixed(2)}%` };
+                    }
+                }
+                return null;
+            });
         }
 
         function drawComparisonChart(canvasId, stockData, sp500Data, ticker, startDate) {
@@ -3193,44 +3172,16 @@
             ctx.fillText('Return (Arithmetic Mean Annual Return %)', 0, 0);
             ctx.restore();
 
-            // Add hover tooltip functionality
-            canvas.onmousemove = function(e) {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-
-                // Check if mouse is over any point
-                let hoveredPoint = null;
+            // Tooltip
+            addCanvasTooltip(canvas, (mouseX, mouseY) => {
                 for (let point of canvas.pointData) {
                     const distance = Math.sqrt(Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2));
                     if (distance <= point.radius + 5) {
-                        hoveredPoint = point;
-                        break;
+                        return { html: `<strong>${point.ticker}</strong><br>Arithmetic Mean: ${point.mean.toFixed(2)}%<br>Geometric Mean: ${point.geoMean.toFixed(2)}%<br>Risk (Std Dev): ${point.stdDev.toFixed(2)}%` };
                     }
                 }
-
-                const tooltip = document.getElementById('chart-tooltip');
-                if (hoveredPoint) {
-                    canvas.style.cursor = 'pointer';
-                    tooltip.innerHTML = `
-                        <strong>${hoveredPoint.ticker}</strong><br>
-                        Arithmetic Mean: ${hoveredPoint.mean.toFixed(2)}%<br>
-                        Geometric Mean: ${hoveredPoint.geoMean.toFixed(2)}%<br>
-                        Risk (Std Dev): ${hoveredPoint.stdDev.toFixed(2)}%
-                    `;
-                    tooltip.style.left = (e.clientX + 10) + 'px';
-                    tooltip.style.top = (e.clientY - 10) + 'px';
-                    tooltip.style.display = 'block';
-                } else {
-                    canvas.style.cursor = 'default';
-                    tooltip.style.display = 'none';
-                }
-            };
-
-            canvas.onmouseleave = function() {
-                document.getElementById('chart-tooltip').style.display = 'none';
-                canvas.style.cursor = 'default';
-            };
+                return null;
+            });
         }
 
         function resetRollingReturns() {
@@ -3531,6 +3482,55 @@
                     legendX += 65;
                 });
             }
+
+            // Tooltip — find closest line at cursor x position
+            const rollingStartYr = parseInt(document.getElementById('rolling-start-year').value);
+            const rollingEndYr = parseInt(document.getElementById('rolling-end-year').value);
+            addCanvasTooltip(canvas, (mouseX, mouseY) => {
+                const chartX = mouseX - padding;
+                const chartY = mouseY - padding;
+                if (chartX < 0 || chartX > chartWidth || chartY < 0 || chartY > chartHeight) return null;
+
+                // Build all visible lines with their data
+                const lines = [];
+                sp500ActivePeriods.forEach(period => {
+                    const data = rollingReturnsData[`period${period}`];
+                    if (data && data.length > 0) lines.push({ label: `S&P 500 ${period}yr`, data, color: sp500Colors[period] });
+                });
+                if (additionalRollingReturns) {
+                    additionalActivePeriods.forEach(period => {
+                        const data = additionalRollingReturns[`period${period}`];
+                        if (data && data.length > 0) lines.push({ label: `${additionalTicker} ${period}yr`, data, color: additionalColors[period] });
+                    });
+                }
+
+                // Find the longest data array to determine the year mapping
+                let maxLen = 0;
+                lines.forEach(l => { if (l.data.length > maxLen) maxLen = l.data.length; });
+                if (maxLen === 0) return null;
+
+                // Find closest point across all lines
+                let best = null;
+                let bestDist = Infinity;
+                lines.forEach(line => {
+                    const index = Math.round((chartX / chartWidth) * (line.data.length - 1));
+                    if (index < 0 || index >= line.data.length) return;
+                    const px = padding + (index / (line.data.length - 1)) * chartWidth;
+                    const py = padding + chartHeight - ((line.data[index] - minValue) / range) * chartHeight;
+                    const dist = Math.abs(mouseY - py);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        best = { line, index, value: line.data[index] };
+                    }
+                });
+
+                if (best && bestDist < 30) {
+                    const yearSpan = rollingEndYr - rollingStartYr;
+                    const year = Math.round(rollingStartYr + (best.index / (best.line.data.length - 1)) * yearSpan);
+                    return { html: `<strong>${best.line.label}</strong><br>Year: ${year}<br>Return: ${best.value.toFixed(2)}%` };
+                }
+                return null;
+            });
 
             // Draw histogram
             drawRollingHistogram();
