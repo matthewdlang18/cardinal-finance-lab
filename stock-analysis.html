@@ -1824,11 +1824,20 @@
 
         // Generic canvas hover handler — attaches mousemove/mouseleave to a canvas
         // hitTest(mouseX, mouseY) should return {html: '...'} or null
+        // Removes previous listeners if called again on the same canvas
         function addCanvasTooltip(canvas, hitTest) {
-            canvas.addEventListener('mousemove', (e) => {
+            // Remove old listeners if any
+            if (canvas._tooltipMove) {
+                canvas.removeEventListener('mousemove', canvas._tooltipMove);
+                canvas.removeEventListener('mouseleave', canvas._tooltipLeave);
+            }
+            canvas._tooltipMove = (e) => {
                 const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
+                // Scale mouse coords to canvas internal resolution (CSS may stretch canvas)
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const mouseX = (e.clientX - rect.left) * scaleX;
+                const mouseY = (e.clientY - rect.top) * scaleY;
                 const hit = hitTest(mouseX, mouseY);
                 if (hit) {
                     showTooltip(e, hit.html);
@@ -1837,11 +1846,13 @@
                     hideTooltip();
                     canvas.style.cursor = 'default';
                 }
-            });
-            canvas.addEventListener('mouseleave', () => {
+            };
+            canvas._tooltipLeave = () => {
                 hideTooltip();
                 canvas.style.cursor = 'default';
-            });
+            };
+            canvas.addEventListener('mousemove', canvas._tooltipMove);
+            canvas.addEventListener('mouseleave', canvas._tooltipLeave);
         }
 
         function drawTimeSeriesHistogram(canvasId, returns, title) {
