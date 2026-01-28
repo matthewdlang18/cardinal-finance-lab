@@ -946,7 +946,17 @@
         <div id="rolling-returns" class="tab-content">
         <div class="section">
             <h2 class="section-title">📊 S&P 500 Rolling Returns Analysis</h2>
-            <p style="margin-bottom: 15px; color: #666;">View historical rolling returns over different time periods (1928-2025, 98 years of data). Data from <a href="https://pages.stern.nyu.edu/~adamodar/" target="_blank" style="color: #8C1515;">Aswath Damodaran, NYU Stern</a>.</p>
+            <p style="margin-bottom: 15px; color: #666;">View historical rolling returns over different time periods (1929-2025, 97 years of data). Data from <a href="https://pages.stern.nyu.edu/~adamodar/" target="_blank" style="color: #8C1515;">Aswath Damodaran, NYU Stern</a>.</p>
+
+            <div class="input-group" style="margin-bottom: 15px;">
+                <div class="input-wrapper">
+                    <label>S&P 500 Return Type</label>
+                    <div class="toggle-group" id="return-type-toggles" style="margin: 0;">
+                        <button class="toggle-btn active" id="return-type-total" onclick="toggleReturnType('total')">Total Return (with Dividends)</button>
+                        <button class="toggle-btn" id="return-type-price" onclick="toggleReturnType('price')">Price Only (no Dividends)</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="input-group">
                 <div class="input-wrapper">
@@ -1266,6 +1276,7 @@
         let sp500ActivePeriods = new Set([1, 5, 10, 20, 30]);
         let additionalActivePeriods = new Set([1, 5, 10, 20, 30]);
         let comprehensiveData = null; // Loaded from JSON file
+        let rollingReturnType = 'total'; // 'total' = with dividends, 'price' = price-only
 
         // Load comprehensive stock data on page load
         window.onload = async function() {
@@ -3223,6 +3234,19 @@
             analyzeRollingReturns();
         }
 
+        function toggleReturnType(type) {
+            rollingReturnType = type;
+
+            // Update toggle button styles
+            document.getElementById('return-type-total').classList.toggle('active', type === 'total');
+            document.getElementById('return-type-price').classList.toggle('active', type === 'price');
+
+            // Re-analyze if data already exists
+            if (rollingReturnsData) {
+                analyzeRollingReturns();
+            }
+        }
+
         async function analyzeRollingReturns() {
             const startYear = parseInt(document.getElementById('rolling-start-year').value);
             const endYear = parseInt(document.getElementById('rolling-end-year').value);
@@ -3249,8 +3273,14 @@
                     throw new Error('Rolling returns data not available');
                 }
 
+                // Select the appropriate rolling returns based on toggle
+                const periodSource = rollingReturnType === 'total' ? rollingData.periodsTotal : rollingData.periodsPriceOnly;
+                // Use the appropriate annual returns for filtering
+                const sp500AnnualReturns = rollingReturnType === 'total'
+                    ? comprehensiveData['SPX'].annualReturns
+                    : comprehensiveData['SPX'].annualReturnsPriceOnly;
+
                 // Filter S&P 500 rolling returns by start and end year
-                const sp500AnnualReturns = comprehensiveData['SPX'].annualReturns;
                 const startIndex = sp500AnnualReturns.findIndex(r => parseInt(r.year) >= startYear);
                 const endIndex = sp500AnnualReturns.findIndex(r => parseInt(r.year) > endYear);
                 const actualEndIndex = endIndex === -1 ? sp500AnnualReturns.length : endIndex;
@@ -3258,7 +3288,7 @@
                 rollingReturnsData = {};
                 const periods = [1, 5, 10, 20, 30];
                 periods.forEach(period => {
-                    const fullData = rollingData.periods[`period${period}`];
+                    const fullData = periodSource[`period${period}`];
                     // Skip the first (startIndex - period) data points to align with start date
                     const offset = Math.max(0, startIndex - period);
                     // Calculate how many data points to include based on end year
@@ -3436,11 +3466,12 @@
                 ctx.fillText(year.toString(), x, padding + chartHeight + 25);
             }
 
-            // Title
+            // Title - indicate return type
             ctx.fillStyle = '#8C1515';
             ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('S&P 500 Rolling Returns Over Time', canvas.width / 2, padding - 30);
+            const returnTypeLabel = rollingReturnType === 'total' ? 'Total Return (with Dividends)' : 'Price Return (no Dividends)';
+            ctx.fillText(`S&P 500 Rolling Returns - ${returnTypeLabel}`, canvas.width / 2, padding - 30);
 
             // X-axis label - at the end of the x-axis line
             ctx.fillStyle = '#2E2D29';
@@ -3765,9 +3796,10 @@
             ctx.fillStyle = '#8C1515';
             ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'center';
-            let titleText = 'S&P 500 Rolling Returns Distribution';
+            const histReturnLabel = rollingReturnType === 'total' ? 'Total Return' : 'Price Return';
+            let titleText = `S&P 500 Rolling Returns Distribution (${histReturnLabel})`;
             if (additionalTicker) {
-                titleText = `Rolling Returns Distribution: S&P 500 vs ${additionalTicker}`;
+                titleText = `Rolling Returns Distribution (${histReturnLabel}): S&P 500 vs ${additionalTicker}`;
             }
             ctx.fillText(titleText, canvas.width / 2, padding - 30);
 
@@ -3841,7 +3873,8 @@
             }
 
             const stats = document.getElementById('rolling-returns-stats');
-            let statsHTML = '<h3 style="margin-top: 0; color: #8C1515;">Rolling Returns Statistics</h3>';
+            const statsReturnLabel = rollingReturnType === 'total' ? 'Total Return (with Dividends)' : 'Price Return (no Dividends)';
+            let statsHTML = `<h3 style="margin-top: 0; color: #8C1515;">Rolling Returns Statistics - ${statsReturnLabel}</h3>`;
             statsHTML += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">';
 
             // S&P 500 averages and std dev
