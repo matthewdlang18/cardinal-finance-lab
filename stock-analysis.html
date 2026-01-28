@@ -1148,14 +1148,26 @@
                     <input type="number" id="pa-rate" step="0.01" placeholder="e.g., 8 for 8%">
                 </div>
 
+                <div class="input-group">
+                    <label for="pa-frequency">Compounding Frequency</label>
+                    <select id="pa-frequency">
+                        <option value="1" selected>Annual</option>
+                        <option value="2">Semi-Annual</option>
+                        <option value="4">Quarterly</option>
+                        <option value="12">Monthly</option>
+                        <option value="52">Weekly</option>
+                        <option value="365">Daily</option>
+                    </select>
+                </div>
+
                 <div class="input-group" id="pa-growth-group" style="display: none;">
                     <label for="pa-growth">Growth Rate (g) <span class="label-description">Annual growth (e.g., 3 for 3%)</span></label>
                     <input type="number" id="pa-growth" step="0.01" placeholder="e.g., 3 for 3%">
                 </div>
 
                 <div class="input-group" id="pa-n-group" style="display: none;">
-                    <label for="pa-n">Number of Periods (n) <span class="label-description">Years</span></label>
-                    <input type="number" id="pa-n" step="1" placeholder="Enter number of years">
+                    <label for="pa-n">Number of Periods (n) <span class="label-description">Total periods</span></label>
+                    <input type="number" id="pa-n" step="1" placeholder="Enter number of periods">
                 </div>
             </div>
 
@@ -4591,19 +4603,23 @@
             }
 
             const PMT = parseFloat(document.getElementById('pa-PMT').value);
-            const rate = parseFloat(document.getElementById('pa-rate').value);
+            const annualRate = parseFloat(document.getElementById('pa-rate').value);
+            const frequency = parseFloat(document.getElementById('pa-frequency').value);
             const growth = parseFloat(document.getElementById('pa-growth').value) || 0;
             const n = parseFloat(document.getElementById('pa-n').value) || null;
 
-            if (isNaN(PMT) || isNaN(rate)) {
+            if (isNaN(PMT) || isNaN(annualRate)) {
                 paShowError('Please enter Payment and Discount Rate');
                 return;
             }
 
-            const r = rate / 100;
-            const g = growth / 100;
+            const r = (annualRate / frequency) / 100;
+            const g = (growth / frequency) / 100;
 
             let result, generalFormula, pluggedFormula, formulaName;
+            const freqNames = {1:'Annual',2:'Semi-Annual',4:'Quarterly',12:'Monthly',52:'Weekly',365:'Daily'};
+            const rateNote = frequency > 1 ? `r = ${annualRate}% / ${frequency} = ${(r * 100).toFixed(4)}% per period (${freqNames[frequency] || frequency + '×/yr'})<br>` : '';
+            const growthNote = frequency > 1 && growth > 0 ? `g = ${growth}% / ${frequency} = ${(g * 100).toFixed(4)}% per period<br>` : '';
 
             try {
                 switch (formulaType) {
@@ -4612,7 +4628,7 @@
                         result = PMT / r;
                         formulaName = 'Perpetuity PV';
                         generalFormula = `PV = <div class="fraction"><span class="numerator">PMT</span><span class="denominator">r</span></div>`;
-                        pluggedFormula = `PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        pluggedFormula = `${rateNote}PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${(r * 100).toFixed(4)}%</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                         break;
 
                     case 'growing-perpetuity':
@@ -4620,7 +4636,7 @@
                         result = PMT / (r - g);
                         formulaName = 'Growing Perpetuity PV';
                         generalFormula = `PV = <div class="fraction"><span class="numerator">PMT</span><span class="denominator">r - g</span></div>`;
-                        pluggedFormula = `PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${r.toFixed(4)} - ${g.toFixed(4)}</span></div> = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${(r - g).toFixed(4)}</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        pluggedFormula = `${rateNote}${growthNote}PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${(r * 100).toFixed(4)}% - ${(g * 100).toFixed(4)}%</span></div> = <div class="fraction"><span class="numerator">${PMT.toLocaleString()}</span><span class="denominator">${((r - g) * 100).toFixed(4)}%</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                         break;
 
                     case 'annuity':
@@ -4629,7 +4645,7 @@
                         result = PMT * (1 - Math.pow(1 + r, -n)) / r;
                         formulaName = 'Annuity PV';
                         generalFormula = `PV = PMT × <div class="fraction"><span class="numerator">1 - (1+r)<sup>-n</sup></span><span class="denominator">r</span></div>`;
-                        pluggedFormula = `PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - (1+${r.toFixed(4)})<sup>-${n}</sup></span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ${Math.pow(1 + r, -n).toFixed(6)}</span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × ${((1 - Math.pow(1 + r, -n)) / r).toFixed(6)}<br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        pluggedFormula = `${rateNote}PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - (1+${r.toFixed(4)})<sup>-${n}</sup></span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ${Math.pow(1 + r, -n).toFixed(6)}</span><span class="denominator">${r.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × ${((1 - Math.pow(1 + r, -n)) / r).toFixed(6)}<br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                         break;
 
                     case 'growing-annuity':
@@ -4639,24 +4655,24 @@
                             result = PMT * n / (1 + r);
                             formulaName = 'Growing Annuity PV';
                             generalFormula = `PV = <div class="fraction"><span class="numerator">PMT × n</span><span class="denominator">1 + r</span></div> <span style="font-size:12px;color:#666;">(when r = g)</span>`;
-                            pluggedFormula = `Since r = g, special formula applies:<br><br>PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()} × ${n}</span><span class="denominator">1 + ${r.toFixed(4)}</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            pluggedFormula = `${rateNote}${growthNote}Since r = g, special formula applies:<br><br>PV = <div class="fraction"><span class="numerator">${PMT.toLocaleString()} × ${n}</span><span class="denominator">1 + ${r.toFixed(4)}</span></div><br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                         } else {
                             const ratio = Math.pow((1 + g) / (1 + r), n);
                             result = PMT * (1 - ratio) / (r - g);
                             formulaName = 'Growing Annuity PV';
                             generalFormula = `PV = PMT × <div class="fraction"><span class="numerator">1 - ((1+g)/(1+r))<sup>n</sup></span><span class="denominator">r - g</span></div>`;
-                            pluggedFormula = `PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ((1+${g.toFixed(4)})/(1+${r.toFixed(4)}))<sup>${n}</sup></span><span class="denominator">${r.toFixed(4)} - ${g.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ${ratio.toFixed(6)}</span><span class="denominator">${(r - g).toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × ${((1 - ratio) / (r - g)).toFixed(6)}<br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            pluggedFormula = `${rateNote}${growthNote}PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ((1+${g.toFixed(4)})/(1+${r.toFixed(4)}))<sup>${n}</sup></span><span class="denominator">${r.toFixed(4)} - ${g.toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × <div class="fraction"><span class="numerator">1 - ${ratio.toFixed(6)}</span><span class="denominator">${(r - g).toFixed(4)}</span></div><br><br>PV = ${PMT.toLocaleString()} × ${((1 - ratio) / (r - g)).toFixed(6)}<br><br>PV = $${result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                         }
                         break;
                 }
 
-                paDisplayResult(formulaName, result, generalFormula, pluggedFormula, formulaType, PMT, rate, growth, n);
+                paDisplayResult(formulaName, result, generalFormula, pluggedFormula, formulaType, PMT, annualRate, growth, n, frequency);
             } catch (error) {
                 paShowError(error.message);
             }
         }
 
-        function paDisplayResult(formulaName, value, generalFormula, pluggedFormula, formulaType, PMT, rate, growth, n) {
+        function paDisplayResult(formulaName, value, generalFormula, pluggedFormula, formulaType, PMT, rate, growth, n, frequency) {
             const resultContainer = document.getElementById('pa-resultContainer');
             const resultTitle = document.getElementById('pa-resultTitle');
             const resultValue = document.getElementById('pa-resultValue');
@@ -4680,6 +4696,7 @@
                     rate: rate,
                     growth: growth || null,
                     n: n,
+                    frequency: frequency,
                     formulaType: formulaType
                 },
                 timestamp: new Date().toISOString()
@@ -4725,6 +4742,7 @@
             document.getElementById('pa-formulaType').value = '';
             document.getElementById('pa-PMT').value = '';
             document.getElementById('pa-rate').value = '';
+            document.getElementById('pa-frequency').value = '1';
             document.getElementById('pa-growth').value = '';
             document.getElementById('pa-n').value = '';
             document.getElementById('pa-growth-group').style.display = 'none';
