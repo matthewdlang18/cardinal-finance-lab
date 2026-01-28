@@ -872,6 +872,19 @@
             <button class="add-btn" onclick="normalizeWeights()" style="background-color: #17a2b8; margin-left: 10px;">Normalize Weights to 100%</button>
             <button class="add-btn" onclick="equalWeightPortfolio()" style="background-color: #6f42c1; margin-left: 10px;">Equal Weight All</button>
             <button class="add-btn" onclick="load2000TopPicks()" style="background-color: #fd7e14; margin-left: 10px;">2000 Top Picks</button>
+            <div style="display: inline-flex; align-items: center; margin-left: 10px; gap: 5px;">
+                <select id="random-portfolio-count" style="padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px;">
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5" selected>5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+                <button class="add-btn" onclick="generateRandomPortfolio()" style="background-color: #20c997; margin-left: 0;">Random Portfolio</button>
+            </div>
             <div class="input-group" style="margin-top: 20px;">
                 <div class="input-wrapper">
                     <label for="portfolio-start-year">Start Year</label>
@@ -1295,7 +1308,7 @@
             // Initialize with 4 portfolio stocks
             addPortfolioStock('AAPL', 25);
             addPortfolioStock('KO', 25);
-            addPortfolioStock('GOOGL', 25);
+            addPortfolioStock('AMZN', 25);
             addPortfolioStock('F', 25);
 
             // Initialize with 6 random risk-return stocks
@@ -2816,6 +2829,60 @@
             portfolioData = null;
         }
 
+        function generateRandomPortfolio() {
+            // Get the number of stocks from dropdown
+            const count = parseInt(document.getElementById('random-portfolio-count').value);
+
+            // Clear existing portfolio
+            const container = document.getElementById('portfolio-stocks');
+            container.innerHTML = '';
+            portfolioStockCount = 0;
+
+            // Get all available stock tickers (excluding special entries and bonds)
+            const availableTickers = Object.keys(comprehensiveData).filter(ticker => {
+                // Exclude special entries and bonds
+                if (ticker.startsWith('_') || ticker === 'SPX') return false;
+                if (['TBILL', 'TBOND10', 'BAACORP'].includes(ticker)) return false;
+                // Must have annual returns data
+                const stock = comprehensiveData[ticker];
+                return stock && stock.annualReturns && stock.annualReturns.length >= 5;
+            });
+
+            // Shuffle and pick random stocks
+            const shuffled = availableTickers.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, count);
+
+            // Calculate equal weights
+            const equalWeight = (100 / count).toFixed(2);
+
+            // Add selected stocks
+            selected.forEach(ticker => {
+                addPortfolioStock(ticker, equalWeight);
+            });
+
+            // Clear any existing results
+            document.getElementById('portfolio-error').style.display = 'none';
+            document.getElementById('portfolio-stats').style.display = 'none';
+
+            const portfolioSummaryStats = document.getElementById('portfolio-summary-stats');
+            if (portfolioSummaryStats) {
+                portfolioSummaryStats.remove();
+            }
+
+            document.getElementById('portfolio-sharpe-display').style.display = 'none';
+            document.getElementById('portfolio-sharpe-btn').disabled = true;
+            document.getElementById('portfolio-sharpe-btn').textContent = 'Show Sharpe Ratio';
+
+            const charts = ['portfolio-histogram', 'portfolio-returns-time', 'portfolio-vs-sp500'];
+            charts.forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            portfolioData = null;
+        }
+
         function resetPortfolio() {
             // Clear all portfolio stocks
             const container = document.getElementById('portfolio-stocks');
@@ -2853,7 +2920,7 @@
             // Add initial stocks
             addPortfolioStock('AAPL', 25);
             addPortfolioStock('KO', 25);
-            addPortfolioStock('GOOGL', 25);
+            addPortfolioStock('AMZN', 25);
             addPortfolioStock('F', 25);
         }
 
