@@ -3936,12 +3936,13 @@
                 return;
             }
 
-            const PV = parseFloat(document.getElementById('tvm-PV').value) || null;
-            const FV = parseFloat(document.getElementById('tvm-FV').value) || null;
-            const PMT = parseFloat(document.getElementById('tvm-PMT').value) || null;
-            const annualRate = parseFloat(document.getElementById('tvm-annualRate').value) || null;
+            const parseInput = (id) => { const v = document.getElementById(id).value.trim(); return v === '' ? null : parseFloat(v); };
+            const PV = parseInput('tvm-PV');
+            const FV = parseInput('tvm-FV');
+            const PMT = parseInput('tvm-PMT');
+            const annualRate = parseInput('tvm-annualRate');
             const frequency = parseFloat(document.getElementById('tvm-frequency').value);
-            const n = parseFloat(document.getElementById('tvm-n').value) || null;
+            const n = parseInput('tvm-n');
             const paymentType = document.getElementById('tvm-paymentType').value;
 
             const rate = annualRate !== null ? annualRate / frequency : null;
@@ -4187,6 +4188,15 @@
                 throw new Error('Please enter Number of Periods');
             }
 
+            // Auto-fix sign convention: if PV and FV are both positive (or both negative)
+            // and PMT is 0 or null, negate PV so the equation is solvable
+            const pmt = PMT || 0;
+            if (PV !== null && FV !== null && pmt === 0 && PV > 0 && FV > 0) {
+                PV = -PV;
+            } else if (PV !== null && FV !== null && pmt === 0 && PV < 0 && FV < 0) {
+                PV = -PV;
+            }
+
             let rate = 0.1;
             const tolerance = 0.000001;
             const maxIterations = 100;
@@ -4252,7 +4262,7 @@
                 if (rate < -0.99) rate = -0.99;
             }
 
-            throw new Error('Could not converge to a solution for interest rate after ' + maxIterations + ' iterations');
+            throw new Error('Could not find a solution for interest rate. Check your inputs — in TVM convention, cash outflows (e.g., initial investment) should be negative and cash inflows should be positive.');
         }
 
         function tvmDisplayResult(variable, value, generalFormula, pluggedFormula) {
