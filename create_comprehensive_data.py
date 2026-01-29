@@ -85,7 +85,7 @@ for i in range(1, len(sp_returns)):
 # Calculate stats for S&P
 returns_values = [r['return'] for r in sp_returns]
 mean = sum(returns_values) / len(returns_values)
-variance = sum((r - mean) ** 2 for r in returns_values) / len(returns_values)
+variance = sum((r - mean) ** 2 for r in returns_values) / (len(returns_values) - 1)
 std_dev = variance ** 0.5
 
 sp_stats = {
@@ -143,7 +143,7 @@ for col_name, (ticker, full_name) in bond_types.items():
     # Calculate stats
     ret_values = [r['return'] for r in returns]
     mean = sum(ret_values) / len(ret_values)
-    variance = sum((r - mean) ** 2 for r in ret_values) / len(ret_values)
+    variance = sum((r - mean) ** 2 for r in ret_values) / (len(ret_values) - 1)
     std_dev = variance ** 0.5
 
     stats = {

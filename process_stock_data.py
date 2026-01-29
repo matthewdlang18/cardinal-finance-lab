@@ -142,8 +142,8 @@ def calculate_stats(annual_returns):
     returns = [r['return'] for r in annual_returns]
     mean = sum(returns) / len(returns)
 
-    # Calculate standard deviation
-    variance = sum((r - mean) ** 2 for r in returns) / len(returns)
+    # Calculate standard deviation (sample std dev with n-1)
+    variance = sum((r - mean) ** 2 for r in returns) / (len(returns) - 1)
     std_dev = variance ** 0.5
 
     return {

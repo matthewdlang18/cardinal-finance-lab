@@ -1576,7 +1576,7 @@
                 const annualReturns = annualFilteredReturns.map(r => r.return);
                 const geoMean = geometricMean(annualReturns);
                 const arithMean = annualReturns.reduce((a, b) => a + b, 0) / annualReturns.length;
-                const variance = annualReturns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / annualReturns.length;
+                const variance = annualReturns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / (annualReturns.length - 1);
                 const stdDev = Math.sqrt(variance);
 
                 const stats = {
@@ -1761,7 +1761,7 @@
             const stockAnnualReturns = data.annualFilteredReturns.map(r => r.return);
             const stockGeoMean = geometricMean(stockAnnualReturns);
             const stockArithMean = stockAnnualReturns.reduce((a, b) => a + b, 0) / stockAnnualReturns.length;
-            const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockArithMean, 2), 0) / stockAnnualReturns.length;
+            const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockArithMean, 2), 0) / (stockAnnualReturns.length - 1);
             const stockStdDev = Math.sqrt(stockVariance);
             const stockMax = Math.max(...stockAnnualReturns);
             const stockMin = Math.min(...stockAnnualReturns);
@@ -1774,7 +1774,7 @@
             const sp500Returns = data.sp500AnnualReturns.map(r => r.return);
             const sp500GeoMean = geometricMean(sp500Returns);
             const sp500ArithMean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
-            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500ArithMean, 2), 0) / sp500Returns.length;
+            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500ArithMean, 2), 0) / (sp500Returns.length - 1);
             const sp500StdDev = Math.sqrt(sp500Variance);
             const sp500Max = Math.max(...sp500Returns);
             const sp500Min = Math.min(...sp500Returns);
@@ -1823,13 +1823,13 @@
                 const riskFreeRate = 4.0; // 4% risk-free rate
                 const stockAnnualReturns = stockData.annualFilteredReturns.map(r => r.return);
                 const stockMean = stockAnnualReturns.reduce((a, b) => a + b, 0) / stockAnnualReturns.length;
-                const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockMean, 2), 0) / stockAnnualReturns.length;
+                const stockVariance = stockAnnualReturns.reduce((sum, val) => sum + Math.pow(val - stockMean, 2), 0) / (stockAnnualReturns.length - 1);
                 const stockStdDev = Math.sqrt(stockVariance);
                 const stockSharpe = (stockMean - riskFreeRate) / stockStdDev;
 
                 const sp500Returns = stockData.sp500AnnualReturns.map(r => r.return);
                 const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
-                const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+                const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / (sp500Returns.length - 1);
                 const sp500StdDev = Math.sqrt(sp500Variance);
                 const sp500Sharpe = (sp500Mean - riskFreeRate) / sp500StdDev;
 
@@ -2725,7 +2725,7 @@
                 const returns = portfolioReturns.map(r => r.return);
                 const geoMean = geometricMean(returns);
                 const arithMean = returns.reduce((a, b) => a + b, 0) / returns.length;
-                const variance = returns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / returns.length;
+                const variance = returns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / (returns.length - 1);
                 const stdDev = Math.sqrt(variance);
 
                 const stats = {
@@ -3017,7 +3017,7 @@
             const portfolioReturns = data.annualReturns.map(r => r.return);
             const portfolioGeoMean = geometricMean(portfolioReturns);
             const portfolioArithMean = portfolioReturns.reduce((a, b) => a + b, 0) / portfolioReturns.length;
-            const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioArithMean, 2), 0) / portfolioReturns.length;
+            const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioArithMean, 2), 0) / (portfolioReturns.length - 1);
             const portfolioStdDev = Math.sqrt(portfolioVariance);
             const portfolioMax = Math.max(...portfolioReturns);
             const portfolioMin = Math.min(...portfolioReturns);
@@ -3030,7 +3030,7 @@
             const sp500Returns = data.sp500Returns.map(r => r.return);
             const sp500GeoMean = geometricMean(sp500Returns);
             const sp500ArithMean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
-            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500ArithMean, 2), 0) / sp500Returns.length;
+            const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500ArithMean, 2), 0) / (sp500Returns.length - 1);
             const sp500StdDev = Math.sqrt(sp500Variance);
             const sp500Max = Math.max(...sp500Returns);
             const sp500Min = Math.min(...sp500Returns);
@@ -3079,13 +3079,13 @@
                 const riskFreeRate = 4.0; // 4% risk-free rate
                 const portfolioReturns = portfolioData.annualReturns.map(r => r.return);
                 const portfolioMean = portfolioReturns.reduce((a, b) => a + b, 0) / portfolioReturns.length;
-                const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioMean, 2), 0) / portfolioReturns.length;
+                const portfolioVariance = portfolioReturns.reduce((sum, val) => sum + Math.pow(val - portfolioMean, 2), 0) / (portfolioReturns.length - 1);
                 const portfolioStdDev = Math.sqrt(portfolioVariance);
                 const portfolioSharpe = (portfolioMean - riskFreeRate) / portfolioStdDev;
 
                 const sp500Returns = portfolioData.sp500Returns.map(r => r.return);
                 const sp500Mean = sp500Returns.reduce((a, b) => a + b, 0) / sp500Returns.length;
-                const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / sp500Returns.length;
+                const sp500Variance = sp500Returns.reduce((sum, val) => sum + Math.pow(val - sp500Mean, 2), 0) / (sp500Returns.length - 1);
                 const sp500StdDev = Math.sqrt(sp500Variance);
                 const sp500Sharpe = (sp500Mean - riskFreeRate) / sp500StdDev;
 
@@ -3181,7 +3181,7 @@
 
                     const arithMean = returns.reduce((a, b) => a + b, 0) / returns.length;
                     const geoMean = geometricMean(returns);
-                    const variance = returns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / returns.length;
+                    const variance = returns.reduce((sum, val) => sum + Math.pow(val - arithMean, 2), 0) / (returns.length - 1);
                     const stdDev = Math.sqrt(variance);
 
                     stockStats.push({ ticker, mean: arithMean, geoMean, stdDev });
@@ -3988,7 +3988,7 @@
                 const data = rollingReturnsData[`period${period}`];
                 const avg = geometricMean(data);
                 const arithAvg = data.reduce((a, b) => a + b, 0) / data.length;
-                const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / data.length;
+                const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / (data.length - 1);
                 const stdDev = Math.sqrt(variance);
                 const worst = Math.min(...data);
                 const best = Math.max(...data);
@@ -4004,7 +4004,7 @@
                     const data = additionalRollingReturns[`period${period}`];
                     const avg = geometricMean(data);
                     const arithAvg = data.reduce((a, b) => a + b, 0) / data.length;
-                    const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / data.length;
+                    const variance = data.reduce((sum, val) => sum + Math.pow(val - arithAvg, 2), 0) / (data.length - 1);
                     const stdDev = Math.sqrt(variance);
                     const worst = Math.min(...data);
                     const best = Math.max(...data);
