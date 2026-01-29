@@ -2127,11 +2127,12 @@
                 ctx.fillText(value.toFixed(1) + '%', x, topPadding + chartHeight + 25);
             }
 
-            // Y-axis labels
+            // Y-axis labels - only show unique integers
             ctx.textAlign = 'right';
-            for (let i = 0; i <= 5; i++) {
-                const value = Math.round((maxBinCount / 5) * i);
-                const y = topPadding + chartHeight - (i / 5) * chartHeight;
+            const numYLabels = Math.min(5, maxBinCount); // Don't show more labels than max count
+            for (let i = 0; i <= numYLabels; i++) {
+                const value = Math.round((maxBinCount / numYLabels) * i);
+                const y = topPadding + chartHeight - (value / maxBinCount) * chartHeight;
                 ctx.fillText(value, padding - 10, y + 5);
             }
 
